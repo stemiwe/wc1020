@@ -1,0 +1,265 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* Body */
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Press Start 2P', monospace;    
+}
+body, input, select {
+    font-size: 14px;
+}
+@media (max-width: 1000px) {
+    body, input, select {
+        font-size: 12px;
+    }
+}
+@media (max-width: 800px) {
+    body, input, select {
+        font-size: 10px;
+    }
+}
+@media (max-width: 600px) {
+    body, input, select {
+        font-size: 8px;
+    }
+}
+
+/* Elements */
+body, input, select, textarea, button {
+  font-family: 'Press Start 2P', monospace;
+}
+input, select {
+    padding: 0.5em;    
+}
+option {
+    font-size: 8px;
+    color: white;
+    background-color: black;
+}
+.form * {
+    font-size: 14px !important;
+}
+.loginform * {
+    font-size: 14px !important;
+}
+h1, h2 {
+    width: 100%;
+    text-align: center;    
+}
+h1 {
+    font-size: 24px;
+    border-bottom: 3px solid white;
+    margin-top: 1em;
+    padding-bottom: 0.5em;
+}
+h2, .form h2 {
+    font-size: 16px !important;
+}
+.inputform {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;        
+}
+.form-card {
+    margin: 0.5em 0;
+    padding: 0.5em 1em !important;
+    background-color: DimGray;
+    border-radius: 2em;    
+}
+.winner {
+    background-color: DarkGreen;
+}
+.loser {
+    background-color: DarkRed;
+}
+.winner-confirm {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+.loser-confirm {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+}
+.form-element {
+    margin: 1em 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;    
+}
+.form-element label {
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    margin-right: 0.5em;
+}
+.button {
+    background-color: white;
+    border-radius: 2em;
+    text-decoration: none;
+    color: black;
+    border: 3px solid black;
+    padding: 1em 1.5em;
+    cursor: pointer;
+    box-shadow: 0.2em 0.2em 0 darkgrey;
+}
+.button.active {
+    background-color: darkgrey;
+    box-shadow: none;
+}
+.form .button {
+    border-radius: 2em;
+    font-size: 14px;
+}
+.add-button {
+    position: fixed;
+    line-height: 0.4;
+    bottom: 0;
+    right: 0;        
+    font-size: 80px;
+    padding: 0;
+    box-shadow: none;    
+    font-family: "Anton";
+    border-radius: 0;
+    border-top-left-radius: 50%;             
+    width: 0.6em;
+    height: 0.6em;
+    text-align: center;
+}
+
+/* Classes */
+.content {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;    
+}
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 2em 0;
+}
+.logo {
+    width: 200px;
+    height: 200px;
+    text-align: center;
+    border-radius: 10%;
+    margin: 10% 0;
+}
+.header {    
+    border-bottom: 3px solid white;
+    padding-bottom: 2em;
+    margin: 2em 0;
+}
+.footer {    
+    margin-top: 1em;
+    border-top: 3px solid white;
+    padding-top: 1em;
+}
+.header, .footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+.error {
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    color: red;    
+    display: inline-block
+}
+
+/* Table */
+table {
+    padding: 1em 0;
+    width: 100%;
+}
+th {
+    color: black;
+    background-color: white;    
+    border-bottom: 5px solid black !important;
+    text-align: center !important;
+    padding: 1em !important;
+    /* text-shadow: 1px 1px 2px hotpink; */
+}
+tr.odd {
+    background-color: DimGray !important;
+}
+td {
+    padding: 0 0.25em !important;
+}
+#table_filter input {
+    max-width: 200px;
+}
+.player-name {
+    padding: 1em;
+    font-weight: bold;    
+}
+.confirm .player-name {
+    width: 8em;
+}
+#table_length {
+    /* width: 100px; */
+    /* height: 20px;
+    overflow: hidden; */
+    float: left;
+}
+#table_filter {
+    /* width: calc(100vw - 150px); */
+    float: right;
+    margin: 0;
+}
+.player-cell {
+    padding: 0 !important;
+}
+.number-cell {
+    text-align: right;
+    padding-right: 1em !important;
+}
+td.goal-cell {
+    font-size: 18px;
+}
+td.date-cell {    
+    text-align: center;        
+}
+td.date-cell > div {
+    margin-top: 0.5em;
+}
+td.gp-cell {
+    text-align: right;    
+    padding-right: 0 !important;
+}
+td.gm-cell::before {
+    content: ":";    
+}
+.goal-confirm {
+    padding-top: 8px;
+    font-size: 64px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    background-color: black;
+    text-align: right;
+    width: 120px;
+}
+.elo-confirm {
+    background-color: white;
+    font-size: 24px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+}
+.elo-winner {
+    color: DarkGreen;
+}
+.elo-loser {
+    color: DarkRed;
+}
+
+
