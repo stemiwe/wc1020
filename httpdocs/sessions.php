@@ -10,28 +10,28 @@ die();
 <table id="table">
   <thead>
     <tr>
-      <th>Name</th>            
-      <th>G</th>      
-      <th>W</th>      
-      <th>L</th>      
-      <th>G+</th>      
-      <th>G-</th>      
+      <th>Name</th>
+      <th>G</th>
+      <th>W</th>
+      <th>L</th>
+      <th>G+</th>
+      <th>G-</th>
       <th>W%</th>
     </tr>
   </thead>
   <tbody>
-    <?php    
-    $players = $DB->query("SELECT * FROM players")->fetchAll();        
+    <?php
+    $players = $DB->query("SELECT * FROM players")->fetchAll();
 
     foreach ($players as $player) {
         echo '<tr>';
-        echo '<td>' . write_player($player) . '</td>';                
+        echo '<td>' . write_player($player) . '</td>';
         $games = 0;
         $win = 0;
         $loss = 0;
         $gp = 0;
         $gm = 0;
-        $wp = 0;        
+        $wp = 0;
         echo '<td class="number-cell">' . $games . '</td>';
         echo '<td class="number-cell">' . $win . '</td>';
         echo '<td class="number-cell">' . $loss . '</td>';
@@ -51,7 +51,8 @@ die();
 <script>
   $(document).ready(function() {
     $('#table').DataTable({
-      pageLength: 25
+      lengthMenu: false,
+      dom: 'ftip',
     });
   });
 </script>

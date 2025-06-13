@@ -17,7 +17,6 @@ if (count($_POST) > 0) {
     // Get params.
     $name = $_POST['name'];
     $bg = $_POST['bg'];
-    $color = $_POST['color'];
 
     // Check if name already exists.
     $stmt = $DB->pdo->prepare("SELECT COUNT(*) FROM players WHERE name = :name");
@@ -26,12 +25,6 @@ if (count($_POST) > 0) {
     $count = $stmt->fetchColumn();
     if ($count > 0) {
         $error = 'Dein Namen gibts scho, oida!';
-
-        // Temporary solution to change player color.
-        $DB->update("players", ['bg' => $bg, 'color' => $color], ['name' => $name]);
-        header("Location: players.php?time=session");
-        exit();
-
         $valid = false;
     }
 
@@ -42,7 +35,6 @@ if (count($_POST) > 0) {
         $player = [
             'name' => $name,
             'bg' => $bg,
-            'color' => $color,
             'elo' => 1000, // Default ELO.
             'joined' => time(),
         ];
@@ -69,17 +61,16 @@ if (count($_POST) > 0) {
             </div>
 
             <div class="form-element color-picker-container">
-                <label>Colors</label>
+                <label>Color</label>
                 <div class="color-picker">
-                    <input type="color" class="color-wheel" name="color" id="color-wheel" value="#ffffff">
-                    <input type="color" class="color-wheel" name="bg" id="bg-wheel" value="#7f7f7f">
+                    <input type="color" name="bg" id="color-wheel" value="#7f7f7f">
                     <div class="preview player-name" style="background-color: #7f7f7f;">Player</div>
                 </div>
             </div>
 
             <div class="footer">
                 <button class="button xl" type="submit">OK</button>
-                <a href="/players.php?time=session" class="button xl button-secondary">Cancel</a>
+                <a href="/players.php" class="button xl button-secondary">Cancel</a>
             </div>
         </div>
     </form>
@@ -89,17 +80,14 @@ if (count($_POST) > 0) {
 <!-- Color wheel, thx deepseek -->
 <script>
     const colorWheel = document.getElementById('color-wheel');
-    const bgWheel = document.getElementById('bg-wheel');
     const preview = document.querySelector('.preview');
     const nameInput = document.querySelector('#player-name-input');
 
     function updatePreview() {
-        preview.style.color = colorWheel.value;
-        preview.style.backgroundColor = bgWheel.value;
-        preview.textContent = nameInput.value || 'Player';
+    preview.style.backgroundColor = colorWheel.value;
+    preview.textContent = nameInput.value || 'Player';
     }
 
     colorWheel.addEventListener('input', updatePreview);
-    bgWheel.addEventListener('input', updatePreview);
     nameInput.addEventListener('input', updatePreview);
 </script>

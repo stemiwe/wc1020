@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/lib/config.php';
-echo print_menu();
+require_once 'config.php';
+echo menu();
+echo stats_menu();
 ?>
 
 <!DOCTYPE html>
@@ -18,24 +19,8 @@ echo print_menu();
   </thead>
   <tbody>
     <?php
+    $games = $DB->query("SELECT * FROM games ORDER BY timestamp DESC")->fetchAll();
 
-    // Get filter vars.
-    $filter = get_timefilter();
-    $usefilter = false;
-    if (isset($filter['sql'])) {
-        $usefilter = true;
-        echo print_filter($filter);
-    }
-
-    // Build SQL.
-    $sql = "SELECT * FROM games ";
-    if ($usefilter) {
-        $sql .= $filter['sql'];
-    }
-    $sql .= " ORDER BY timestamp DESC";
-    $games = $DB->query($sql)->fetchAll();
-
-    // Table.
     foreach ($games as $game) {
         $winnerid = $game["winner"];
         $loserid = $game["loser"];
@@ -57,8 +42,8 @@ echo print_menu();
         $time = date('H:i', $game['timestamp']);
         $elo_diff = $game['elo_diff'];
         $elocolor = get_smooth_color_by_percentage($elo_diff);
-        $elofontsize = $elo_diff / 20;
-        $elofontsize = round(max(1, min(2, $elofontsize)), 1);
+        $elofontsize = $elo_diff / 2;
+        $elofontsize = round(max(8, min(22, $elofontsize)), 0);
 
         echo '<tr>';
         echo '<td class="date-cell">' . "<div>$year</div><div>$date</div><div>$time</div></td>";
@@ -66,10 +51,9 @@ echo print_menu();
         echo '<td class="gp-cell goal-cell">' . $game['wg'] . '</td>';
         echo '<td class="gm-cell goal-cell">' . $game['lg'] . '</td>';
         echo '<td class="player-cell">' . write_player($loser_p1) . write_player($loser_p2) . '</td>';
-        echo '<td class="elo-cell"><span style="font-size: ' . $elofontsize . 'rem; color: ' . $elocolor . ';">'. $elo_diff . '</span></td>';
+        echo '<td class="elo-cell"><span style="font-size: ' . $elofontsize . 'px; color: ' . $elocolor . ';">'. $elo_diff . '</span></td>';
         echo '</tr>';
     }
-
     ?>
   </tbody>
 </table>
@@ -77,12 +61,21 @@ echo print_menu();
 <a class="button add-button" href="/addgame.php"></a>
 
 <script>
-$(document).ready(function() {
-    var dtOptions = <?php echo json_encode($datatables_config); ?>;
-    dtOptions.order = [[0, 'desc']];
-    dtOptions.language.info = '_TOTAL_ games';
-    $('#table').DataTable(dtOptions);
-});
+  $(document).ready(function() {
+    $('#table').DataTable({
+      pageLength: 25,
+      order: [[0, 'desc']],
+      columnDefs: [
+        {
+          targets: '_all',
+          orderSequence: ['desc', 'asc'] // first click = DESC
+        }
+      ],
+      language: {
+        lengthMenu: "_MENU_ #"
+      }
+    });
+  });
 </script>
 
 <?php echo print_footer();?>
