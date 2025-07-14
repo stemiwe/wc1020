@@ -1,48 +1,38 @@
 <?php
 
-global $CFG;
+global $CFG, $DB;
 
 require_once __DIR__ . '/lib/config.php';
 require_login();
 
-// Reroute back.
-if (!array_key_exists('game', $_SESSION)) {
-    header('Location: ./addgame.php');
-    exit;
-}
-
-// Get params.
-$player1 = $_SESSION['game']['player1'];
-$player2 = $_SESSION['game']['player2'];
-$player3 = $_SESSION['game']['player3'];
-$player4 = $_SESSION['game']['player4'];
-$game['p1'] = $player1['id'];
-$game['p2'] = $player2['id'];
-$game['p3'] = $player3['id'];
-$game['p4'] = $player4['id'];
-$game['wg'] = $_SESSION['game']['wg'] ?? null;
-$game['lg'] = $_SESSION['game']['lg'] ?? null;
-$game['elo_diff'] = $_SESSION['game']['elo_diff'] ?? null;
+// Get game.
+$sql = "SELECT * FROM games ORDER BY id DESC LIMIT 1";
+$game = $DB->query($sql)->fetch();
+$winner = $DB->query("SELECT * FROM teams WHERE ID = " . $game['winner'])->fetch();
+$loser = $DB->query("SELECT * FROM teams WHERE ID = " . $game['loser'])->fetch();
+$player1 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p1'])->fetch();
+$player2 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p2'])->fetch();
+$player3 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p1'])->fetch();
+$player4 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p2'])->fetch();
 
 // Update DB on confirm.
 if (array_key_exists('confirm', $_POST)) {
 
     // Add game.
     try {
-        add_game($game);
+        remove_game($game);
         header("Location: ./games.php");
         exit();
 
     // Rollback on error.
     } catch (Exception $e) {
-        $DB->pdo->rollBack();
-        $error = "Error saving game: " . $e->getMessage();
+        $error = "Error deleting game: " . $e->getMessage();
     }
 }
 
 ?>
 <body class="modal-page">
-    <h1>Confirm Game</h1>
+    <h1>Delete Game</h1>
     <?php if (!empty($error)) echo '<p class="error">' . $error . '</p>'; ?>
     <form method="post">
         <input type="hidden" name="confirm" value="1"></input>
@@ -73,7 +63,7 @@ if (array_key_exists('confirm', $_POST)) {
             </div>
 
             <div class="footer">
-                <button class="button xl" type="submit">OK</button>
+                <button class="button xl danger" type="submit">DELETE</button>
                 <a href="./games.php" class="button xl">Cancel</a>
             </div>
         </div>

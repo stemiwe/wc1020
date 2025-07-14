@@ -5,54 +5,50 @@ echo print_menu();
 // Save submenu selection.
 $_SESSION['stats'] = basename(__FILE__);
 
-?>
+// Define table columns.
+$table['cols'] = [
+    'Session',
+    'Gold',
+    'Silver',
+    'Bronze'
+];
 
-<!DOCTYPE html>
+// Get all thursdays.
+$sql = "SELECT DISTINCT date FROM games WHERE day = 'Do'";
+$games = $DB->query($sql)->fetchAll();
+foreach ($games as $game) {
 
-<table id="table">
-  <thead>
-    <tr>
-      <th>Session</th>
-      <th class="gold">Gold</th>
-      <!-- <th class="gold">ELO</th>       -->
-      <th class="silver">Silver</th>
-      <!-- <th class="silver">ELO</th>       -->
-      <th class="bronze">Bronze</th>
-      <!-- <th class="bronze">ELO</th>       -->
-    </tr>
-  </thead>
-  <tbody>
-    <?php
-    $sql = "SELECT DISTINCT date FROM games";
-    $rows = $DB->query($sql)->fetchAll();
+    // Prepare data.
+    $date = $game['date'];
 
-    foreach ($rows as $row) {
+    // Medals.
+    $medals = get_medals($date);
 
-        // Prepare data.
-        $date = $row['date'];
-
-        // Medals.
-        $medals = get_medals($date);
-
-        echo '<tr>';
-        echo '<td class="date-cell">' . "$date</td>";
-        echo '<td class="player-cell">';
-        foreach ($medals['gold'] as $medal) {
-            echo write_player($medal['player']);
-        }
-        echo '</td><td class="player-cell">';
-        foreach ($medals['silver'] as $medal) {
-            echo write_player($medal['player']);
-        }
-        echo '</td><td class="player-cell">';
-        foreach ($medals['bronze'] as $medal) {
-            echo write_player($medal['player']);
-        }
-        echo '</td></tr>';
+    $gold = '';
+    foreach ($medals['gold'] as $medal) {
+        $gold .= write_player($medal['player']);
     }
-    ?>
-  </tbody>
-</table>
+    $silver = '';
+    foreach ($medals['silver'] as $medal) {
+        $silver .= write_player($medal['player']);
+    }
+    $bronze = '';
+    foreach ($medals['bronze'] as $medal) {
+        $bronze .= write_player($medal['player']);
+    }
+
+    $row = [];
+    $row[] = ['class' => 'date-cell', 'value' => $date];
+    $row[] = ['class' => 'player-cell', 'value' => $gold];
+    $row[] = ['class' => 'player-cell', 'value' => $silver];
+    $row[] = ['class' => 'player-cell', 'value' => $bronze];
+    $rows[] = $row;
+    $table['rows'][] = $row;
+}
+
+echo print_table($table);
+
+?>
 
 <a class="button add-button" href="/addgame.php"></a>
 

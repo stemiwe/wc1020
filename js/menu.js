@@ -25,8 +25,19 @@ if (parent) {
 
 // Set submenu item active.
 const submenu = document.getElementsByClassName('submenu-item')
+let done = false
 for (let i = 0; i < submenu.length; i++) {
     if (submenu[i].dataset.param == time) {
         submenu[i].classList.add('active')
+        done = true
+    }
+}
+if (!done) {
+    // If no submenu item is active, set the first one active.
+    for (let i = 0; i < submenu.length; i++) {
+        if (submenu[i].dataset.param) {
+            submenu[i].classList.add('active')
+            break
+        }
     }
 }

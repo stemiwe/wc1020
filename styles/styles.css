@@ -139,21 +139,31 @@ h2, .form h2 {
     border-radius: 2rem;
     font-size: 2rem;
 }
-.add-button {
+.add-button, .remove-button {
     padding: 4rem;
     position: fixed;
     bottom: -1rem;
     right: -1rem;
     border-radius: 0;
-    border-top-left-radius: 50%;
     width: 7rem;
     height: 7rem;
     text-align: center;
     overflow: hidden;
     border-width: 0.5rem;
+    box-shadow: none;
+}
+.add-button {
+    right: -1rem;
+    border-top-left-radius: 50%;
+}
+.remove-button {
+    left: -1rem;
+    border-top-right-radius: 50%;
 }
 .add-button::before,
-.add-button::after {
+.add-button::after,
+.remove-button::before,
+.remove-button::after {
   content: "";
   position: absolute;
   background-color: #000;
@@ -161,9 +171,12 @@ h2, .form h2 {
   top: 50%;
   transform: translate(-50%, -50%);
 }
+.danger {
+    background-color: red;
+}
 
 /* Horizontal bar */
-.add-button::before {
+.add-button::before, .remove-button::before {
   width: 60%;
   height: 18%;
 }
@@ -431,6 +444,7 @@ td.gm-cell::before {
     display: flex;
     font-size: 2rem;
     justify-content: space-between;
+    height: 6rem;
 }
 .player-header-name {
     padding: 2rem;
@@ -529,3 +543,13 @@ td.gm-cell::before {
     color: black;
     padding: 2rem;
 }
+.elo-stats-details {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+}
+.awards-placeholder {
+    padding: 1rem;
+    text-align: center;
+}
+

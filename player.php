@@ -28,6 +28,8 @@ $games = $DB->query($sql)->fetchAll();
 // Initialize game variables.
 $elograph = [];
 $elo = 1000;
+$elo_high = 1000;
+$elo_low = 1000;
 $form = [];
 $partners = [];
 $opponents = [];
@@ -151,6 +153,14 @@ foreach ($games as $game) {
         }
     }
     $elograph[] = $elo;
+
+    // Update elo high and low.
+    if ($elo > $elo_high) {
+        $elo_high = $elo;
+    }
+    if ($elo < $elo_low) {
+        $elo_low = $elo;
+    }
 }
 
 // Get player vars.
@@ -171,22 +181,6 @@ echo '</div>';
 
 // -------------------- Details --------------------
 echo '<div class="player-section">';
-// echo '<h2 class="player-subheader">Player Details</h2>';
-
-// Last 10 games.
-echo '<div class="player-stats-details">';
-echo '<div class="stats-label">Last 10 games:</div>';
-echo '<div class="player-form">';
-$i = 0;
-foreach ($form as $f) {
-    echo '<div class="form-' . strtolower($f) . '">' . $f . '</div>';
-    $i++;
-    if ($i > 9) {
-        break;
-    }
-}
-echo '</div>';
-echo '</div>';
 
 // Get partner stats.
 $main_partner = ' ';
@@ -234,8 +228,24 @@ foreach ($opponents as $opponentid => $opponent) {
 
 // Sessions.
 $sessioncount = count($sessions);
-$gps = round(count($games) / $sessioncount, 1);
-echo write_stats_detail_line('Played', ["$sessioncount sessions", "$gps games/sess"]);
+$gamecount = count($games);
+$gps = round($gamecount / $sessioncount, 1);
+echo write_stats_detail_line(null, ["$gamecount games", "$sessioncount sessions", "$gps gms/sess"]);
+
+// Last 10 games.
+echo '<div class="player-stats-details">';
+echo '<div class="stats-label">Last 10 games:</div>';
+echo '<div class="player-form">';
+$i = 0;
+foreach ($form as $f) {
+    echo '<div class="form-' . strtolower($f) . '">' . $f . '</div>';
+    $i++;
+    if ($i > 9) {
+        break;
+    }
+}
+echo '</div>';
+echo '</div>';
 
 // Avg margins.
 if ($wins > 0) {
@@ -295,6 +305,9 @@ echo '</div>';
 // -------------------- Graph for elo --------------------
 echo '<div class="player-section odd">';
 echo '<div class="player-subheader" style=' . $playerstyle . '>ELO Progression</div>';
+echo '<div class="elo-stats-details">';
+echo "<span>Current: $elo</span><span>High: $elo_high</span><span>Low: $elo_low</span>";
+echo '</div>';
 echo '<div class="chart-container">';
 echo '<canvas id="elo-chart"></canvas>';
 
@@ -459,5 +472,10 @@ $(document).ready(function() {
 });
 </script>
 
-<?
+<?php
+
+echo '<div class="player-section">';
+echo '<div class="player-subheader" style=' . $playerstyle . '>Awards</div>';
+echo '<div class="awards-placeholder">will be awarded at end of season.</div>';
+
 echo print_footer();

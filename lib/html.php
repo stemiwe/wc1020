@@ -127,6 +127,7 @@ HTML;
  */
 function print_filter($filter) {
 
+    // Labels for season dropdown.
     $col = $filter['col'];
     if ($col == 'season') {
         $label = ucfirst($col);
@@ -134,10 +135,17 @@ function print_filter($filter) {
         $label = '';
     }
 
+    // Dropdown.
     $html = '<div class="table-filter">';
     $html .= '<div class="filter-arrow" id="filter-prev">&#9664;</div>';
     $html .= '<select id="table-filter" name="' . $col . '" onchange="tableFilter()">';
     foreach ($filter['options'] as $option) {
+
+        // Add weekday to session date.
+        if ($col == 'date') {
+            $label = get_weekday($option);
+        }
+
         $html .= '<option value="' . $option . '">' . "$label $option</option>";
     }
     $html .= "</select>";
@@ -192,7 +200,9 @@ function current_url() {
 function write_stats_detail_line($title, $values) {
     $string = '';
     $string .= '<div class="player-stats-details">';
-    $string .= '<div class="stats-label">' . $title . ': </div>';
+    if ($title) {
+        $string .= '<div class="stats-label">' . $title . ': </div>';
+    }
     foreach ($values as $value) {
         $value = (string) $value;
         $valueclass = '';
@@ -228,4 +238,69 @@ function format_elo($elo) {
         $elo = '<span class="elo-neutral">+' . $elo . ' elo</span>';
     }
     return $elo;
+}
+
+/**
+ * Prints a table.
+ *
+ * @param array $table
+ *
+ * @return string
+ */
+function print_table($table, $id = 'table') {
+
+    $html = '<table id="' . $id . '">';
+
+    // thead.
+    $html .= '<thead>';
+    $html .= '<tr>';
+    foreach ($table['cols'] as $col) {
+        $html .= '<th>' . $col . '</th>';
+    }
+    $html .= '</tr>';
+    $html .= '</thead>';
+
+    // tbody.
+    $html .= '<tbody>';
+    foreach ($table['rows'] as $row) {
+        $html .= '<tr>';
+        foreach ($row as $cell) {
+            $class = $cell['class'] ?? '';
+            $value = $cell['value'] ?? '';
+            $html .= '<td class="' . $class . '">' . $value . '</td>';
+        }
+        $html .= '</tr>';
+    }
+    $html .= '</tbody>';
+    $html .= '</table>';
+
+    return $html;
+}
+
+/**
+ * Gets day of the week from a string date.
+ *
+ * @param string $dateString
+ *
+ * @return bool|string
+ */
+function get_weekday(string $dateString): string {
+    // Create DateTime object from input string
+    $date = new DateTime($dateString);
+
+    // Set up the formatter with German locale
+    $formatter = new IntlDateFormatter(
+        'de_DE',                      // Locale: German
+        IntlDateFormatter::FULL,     // Full date (not used)
+        IntlDateFormatter::NONE,     // No time
+        $date->getTimezone(),        // Timezone from DateTime
+        IntlDateFormatter::GREGORIAN,
+        'EEEE'                        // 'EEEE' = Full weekday name
+    );
+
+    $weekday = $formatter->format($date); // e.g. "Montag"
+
+    // Return first 2 letters capitalized.
+    $weekday = mb_substr($weekday, 0, 2);
+    return $weekday;
 }

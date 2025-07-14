@@ -34,31 +34,33 @@ document.addEventListener("DOMContentLoaded", function() {
   const nextBtn = document.getElementById("filter-next");
 
   // Initialize buttons based on current selection
-  updateButtonStates();
-
-  // Previous button: Select the previous option
-  prevBtn.addEventListener("click", function() {
-    if (select.selectedIndex > 0) {
-      select.selectedIndex--;
-      updateButtonStates();
-      updateUrlWithFilter();
-    }
-  });
-
-  // Next button: Select the next option
-  nextBtn.addEventListener("click", function() {
-    if (select.selectedIndex < select.options.length - 1) {
-      select.selectedIndex++;
-      updateButtonStates();
-      updateUrlWithFilter();
-    }
-  });
-
-  // Select dropdown: Update buttons and URL on manual change
-  select.addEventListener("change", function() {
+  if (prevBtn && nextBtn) {
     updateButtonStates();
-    updateUrlWithFilter();
-  });
+
+    // Previous button: Select the previous option
+    prevBtn.addEventListener("click", function() {
+        if (select.selectedIndex > 0) {
+        select.selectedIndex--;
+        updateButtonStates();
+        updateUrlWithFilter();
+        }
+    });
+
+    // Next button: Select the next option
+    nextBtn.addEventListener("click", function() {
+        if (select.selectedIndex < select.options.length - 1) {
+        select.selectedIndex++;
+        updateButtonStates();
+        updateUrlWithFilter();
+        }
+    });
+
+    // Select dropdown: Update buttons and URL on manual change
+    select.addEventListener("change", function() {
+        updateButtonStates();
+        updateUrlWithFilter();
+    });
+}
 
   // Helper: Update prev/next button states (add/remove 'inactive')
   function updateButtonStates() {

@@ -75,6 +75,7 @@ echo print_menu();
 </table>
 
 <a class="button add-button" href="./addgame.php"></a>
+<a class="button remove-button" href="/removegame.php"></a>
 
 <script>
 $(document).ready(function() {

@@ -22,7 +22,7 @@ function get_timefilter() {
     } elseif ($timefilter == 'season') {
         $col = 'season';
     } else {
-        return '';
+        return ['col' => ''];
     }
 
     // Get disctinct rows.
@@ -242,12 +242,14 @@ function add_game($game) {
     }
 
     // Create game record.
+    $session = date('Y-m-d', $date);
     $record = [
+        'day' => get_weekday($session),
         'winner' => $t1_id,
         'loser' => $t2_id,
         'wg' => $game['wg'],
         'lg' => $game['lg'],
-        'date' => date('Y-m-d', $date),
+        'date' => $session,
         'season' => $CFG->season,
         'timestamp' => time(),
         'elo_diff' => $game['elo_diff'],
@@ -291,3 +293,115 @@ function add_game($game) {
     }
 }
 
+/**
+ * Deletes a game, rolling back the ELO changes and updating stats.
+ *
+ * @param array $game
+ *
+ */
+
+function remove_game($game) {
+
+    global $DB;
+
+    // Get params.
+    $winner = $DB->query("SELECT * FROM teams WHERE ID = " . $game['winner'])->fetch();
+    $winnerid = $winner['id'];
+    $loser = $DB->query("SELECT * FROM teams WHERE ID = " . $game['loser'])->fetch();
+    $loserid = $loser['id'];
+    $player1 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p1'])->fetch();
+    $player2 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p2'])->fetch();
+    $player3 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p1'])->fetch();
+    $player4 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p2'])->fetch();
+    $winners = [$player1['id'], $player2['id']];
+    $losers = [$player3['id'], $player4['id']];
+    $timestamp = $game['timestamp'];
+
+    // Give back ELO.
+    $elo = $game['elo_diff'];
+    $player1['elo'] -= $elo;
+    $player2['elo'] -= $elo;
+    $player3['elo'] += $elo;
+    $player4['elo'] += $elo;
+    $DB->update("players", ['elo' => $player1['elo']], ['id' => $player1['id']]);
+    $DB->update("players", ['elo' => $player2['elo']], ['id' => $player2['id']]);
+    $DB->update("players", ['elo' => $player3['elo']], ['id' => $player3['id']]);
+    $DB->update("players", ['elo' => $player4['elo']], ['id' => $player4['id']]);
+
+    // Shorten team streaks.
+    $streak = $DB->get('stats', '*', [
+        'type' => 'team_streak',
+        'entity_id' => $winnerid,
+        'end' => 0
+    ]);
+    if ($streak) {
+        $streak['value'] -= 1;
+        $DB->update('stats', $streak, ['id' => $streak['id']]);
+    }
+
+    // Shorten player streaks.
+    foreach ($winners as $id) {
+        $streak = $DB->get('stats', '*', [
+            'type' => 'player_streak',
+            'entity_id' => $id,
+            'end' => 0
+        ]);
+        if ($streak) {
+            $streak['value'] -= 1;
+            $DB->update('stats', $streak, ['id' => $streak['id']]);
+        }
+    }
+
+    // Set team streaks back to active.
+    $streak = $DB->get('stats', '*', [
+        'type' => 'team_streak',
+        'entity_id' => $loserid,
+        'end' => $timestamp
+    ]);
+    if ($streak) {
+        $streak['end'] = 0;
+        $DB->update('stats', $streak, ['id' => $streak['id']]);
+    }
+
+    // Set player streaks back to active.
+    foreach ($losers as $id) {
+        $streak = $DB->get('stats', '*', [
+            'type' => 'player_streak',
+            'entity_id' => $id,
+            'end' => $timestamp
+        ]);
+        if ($streak) {
+            $streak['end'] = 0;
+            $DB->update('stats', $streak, ['id' => $streak['id']]);
+        }
+    }
+
+    // Delete game.
+    $DB->delete("games", ['id' => $game['id']]);
+}
+
+/**
+ * Gets the number of sessions for a player.
+ *
+ * @param int $player_id
+ * @param bool $only_thursdays
+ *
+ * @return int
+ */
+function get_player_sessions($player_id, $only_thursdays = true) {
+    global $DB;
+
+    // Get the number of sessions for the player.
+    $sql = "SELECT COUNT(DISTINCT date) as count FROM games
+            WHERE (winner IN (SELECT id FROM teams WHERE p1 = ? OR p2 = ?)
+            OR loser IN (SELECT id FROM teams WHERE p1 = ? OR p2 = ?))";
+    if ($only_thursdays) {
+        $sql .= "AND day = 'Do' ";
+    }
+    $params = [$player_id, $player_id, $player_id, $player_id];
+    $stmt = $DB->pdo->prepare($sql);
+    $stmt->execute($params);
+    $result = $stmt->fetchAll();
+    $result = reset($result);
+    return $result['count'];
+}

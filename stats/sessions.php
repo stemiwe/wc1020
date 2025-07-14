@@ -12,6 +12,7 @@ $_SESSION['stats'] = basename(__FILE__);
 <table id="table">
   <thead>
     <tr>
+      <th>D</th>  
       <th>Session</th>
       <th>Players</th>
       <th>Games</th>
@@ -62,16 +63,19 @@ $_SESSION['stats'] = basename(__FILE__);
         $medals = get_medals($date);
 
         echo '<tr>';
+        echo '<td>' . get_weekday($date) . '</td>';
         echo '<td class="date-cell">' . "$date</td>";
         echo '<td class="number-cell">' . "$players</td>";
         echo '<td class="number-cell">' . "$rows</td>";
         echo '<td class="number-cell">' . "$avg_goals</td>";
+        echo '<td class="player-cell">';
         foreach ($medals['gold'] as $mvp) {
             $player = $mvp['player'];
             $elo = $mvp['elo'];
-            echo '<td class="player-cell">' . write_player($player) . '</td>';
-            echo '<td class="elo-cell elo-gain">+' . $elo . '</td>';
+            echo write_player($player);
         }
+        echo '</td>';
+        echo '<td class="elo-cell elo-gain">+' . $elo . '</td>';
         echo '</tr>';
     }
     ?>
@@ -83,7 +87,7 @@ $_SESSION['stats'] = basename(__FILE__);
 <script>
 $(document).ready(function() {
     var dtOptions = <?php echo json_encode($datatables_config); ?>;
-    dtOptions.order = [[0, 'desc']];
+    dtOptions.order = [[1, 'desc']];
     dtOptions.language.info = '_TOTAL_ sessions';
     $('#table').DataTable(dtOptions);
 });
