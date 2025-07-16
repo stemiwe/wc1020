@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../lib/config.php';
-echo print_menu();
+echo html::menu();
 
 // Save submenu selection.
 $_SESSION['stats'] = basename(__FILE__);
@@ -73,4 +73,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php echo print_footer();?>
+<?php echo html::footer();?>

@@ -15,6 +15,11 @@ function get_timefilter() {
         $timefilter = "session";
     }
 
+    $filter = [        
+        'col' => '',
+        'filter' => $timefilter,
+    ];
+
     // Set col to filter, because i misnamed the session col initially..
     // ToDo: rename session col.
     if ($timefilter == 'session') {
@@ -22,7 +27,7 @@ function get_timefilter() {
     } elseif ($timefilter == 'season') {
         $col = 'season';
     } else {
-        return ['col' => ''];
+        return $filter;
     }
 
     // Get disctinct rows.
@@ -253,6 +258,10 @@ function add_game($game) {
         'season' => $CFG->season,
         'timestamp' => time(),
         'elo_diff' => $game['elo_diff'],
+        'elo_p1' => $player1['elo'],
+        'elo_p2' => $player2['elo'],
+        'elo_p3' => $player3['elo'],
+        'elo_p4' => $player4['elo'],
     ];
     $DB->insert("games", $record);
 

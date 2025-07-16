@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/lib/config.php';
-echo print_menu();
+echo html::menu();
 
 // Get filter vars.
 $filter = get_timefilter();
 $usefilter = false;
 if (isset($filter['sql'])) {
     $usefilter = true;
-    echo print_filter($filter);
+    echo html::filter($filter);
 }
 
 // Define table columns.
@@ -25,6 +25,12 @@ if ($filter['col'] == 'date') {
     $table['cols'][] = 'G+/-';
 }
 $table['cols'][] = 'ELO';
+
+// Regulars only?
+if ($filter['filter'] == 'regulars') {
+    $gamecount = $DB->count('games');
+    $cutoff = $gamecount / 25;
+}
 
 // Table rows.
 $teams = $DB->query("SELECT * FROM teams")->fetchAll();
@@ -87,7 +93,7 @@ foreach ($teams as $team) {
     }
 
     // Skip teams that have no games in this session/season.
-    if ($games == 0) {
+    if ($games == 0 || (isset($cutoff) && $games < $cutoff)) {
         continue;
     }
 
@@ -110,7 +116,7 @@ foreach ($teams as $team) {
     $table['rows'][] = $row;
 }
 
-echo print_table($table);
+echo html::table($table);
 
 ?>
 
@@ -123,4 +129,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php echo print_footer();?>
+<?php echo html::footer();?>

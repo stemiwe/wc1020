@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../lib/config.php';
-echo print_menu();
+echo html::menu();
 
 // Save submenu selection.
 $_SESSION['stats'] = basename(__FILE__);
@@ -46,7 +46,7 @@ foreach ($games as $game) {
     $table['rows'][] = $row;
 }
 
-echo print_table($table);
+echo html::table($table);
 
 ?>
 
@@ -60,4 +60,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php echo print_footer();?>
+<?php echo html::footer();?>

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../lib/config.php';
-echo print_menu();
+echo html::menu();
 
 // Save submenu selection.
 $_SESSION['stats'] = basename(__FILE__);
@@ -12,7 +12,7 @@ $_SESSION['stats'] = basename(__FILE__);
 <table id="table">
   <thead>
     <tr>
-      <th>D</th>  
+      <th>D</th>
       <th>Session</th>
       <th>Players</th>
       <th>Games</th>
@@ -93,4 +93,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php echo print_footer();?>
+<?php echo html::footer();?>

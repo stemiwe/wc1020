@@ -4,7 +4,7 @@ session_start();
 
 // Config.
 $CFG = new stdClass();
-$CFG->nocache = false;
+$CFG->nocache = true;
 $CFG->season = 1;
 $CFG->testsite = false;
 $CFG->autologinip = '213.147.167.227';
@@ -15,23 +15,23 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Lib.
-require_once __DIR__ . '/html.php';
-require_once __DIR__ . '/elo.php';
-require_once __DIR__ . '/login.php';
-require_once __DIR__ . '/gamelib.php';
-require_once __DIR__ . '/stats.php';
+foreach (glob(__DIR__ . '/*.php') as $file) {
+    require_once $file;
+}
+
+// Classes.
+foreach (glob(__DIR__ . '/classes/*.php') as $file) {
+    require_once $file;
+}
 
 // DB.
 require_once __DIR__ . '/ext/Medoo.php';
-use Medoo\Medoo;
-
 if ($CFG->testsite) {
     $db = 'wc1020test';
 } else {
     $db = 'wc1020';
 }
-
-$DB = new Medoo([
+$DB = new Medoo\Medoo([
     'type' => 'mysql',
     'host' => 'localhost',
     'port' => 3306,
@@ -62,6 +62,6 @@ $datatables_config = [
 // Start page output.
 $current_url = current_url();
 if (!strpos($current_url,'/api')) {
-    echo print_header();
+    echo html::header();
 }
 

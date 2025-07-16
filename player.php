@@ -22,7 +22,7 @@ foreach ($teams as $team) {
 $teamids_sql = '(' . implode(',', $teamids) . ')';
 
 // Get games.
-$sql = "SELECT * FROM games WHERE winner IN $teamids_sql OR loser IN $teamids_sql";
+$sql = "SELECT * FROM games WHERE winner IN $teamids_sql OR loser IN $teamids_sql ORDER BY timestamp ASC";
 $games = $DB->query($sql)->fetchAll();
 
 // Initialize game variables.
@@ -30,6 +30,9 @@ $elograph = [];
 $elo = 1000;
 $elo_high = 1000;
 $elo_low = 1000;
+$own_elo = 0;
+$partner_elo = 0;
+$opponent_elo = 0;
 $form = [];
 $partners = [];
 $opponents = [];
@@ -39,6 +42,8 @@ $losses = 0;
 $wgs = 0;
 $lgs = 0;
 $sessions = [];
+$highlights = [];
+$lowpoints = [];
 
 // Get data from games.
 foreach ($games as $game) {
@@ -58,14 +63,20 @@ foreach ($games as $game) {
         $elo = $elo + $game['elo_diff'];
         $wgs += $game['wg'] - $game['lg'];
         $wins ++;
+        $highlights[$game['elo_diff']] = $game;
 
         // Get partners and opponents.
         if ($winnerteam['p1'] == $playerid) {
             $partnerid = $winnerteam['p2'];
+            $own_elo += $game['elo_p1'];
+            $partner_elo += $game['elo_p2'];
         } else {
             $partnerid = $winnerteam['p1'];
+            $own_elo += $game['elo_p2'];
+            $partner_elo += $game['elo_p1'];
         }
         $opponentids = [$loserteam['p1'], $loserteam['p2']];
+        $opponent_elo += $game['elo_p3'] + $game['elo_p4'];
 
         // Partner.
         $partner = $partners[$partnerid] ?? [
@@ -109,14 +120,20 @@ foreach ($games as $game) {
         $elo = $elo - $game['elo_diff'];
         $lgs += $game['lg'] - $game['wg'];
         $losses ++;
+        $lowpoints[$game['elo_diff']] = $game;
 
         // Get partners and opponents.
         if ($loserteam['p1'] == $playerid) {
             $partnerid = $loserteam['p2'];
+            $own_elo += $game['elo_p3'];
+            $partner_elo += $game['elo_p4'];
         } else {
             $partnerid = $loserteam['p1'];
+            $own_elo += $game['elo_p4'];
+            $partner_elo += $game['elo_p3'];
         }
         $opponentids = [$winnerteam['p1'], $winnerteam['p2']];
+        $opponent_elo += $game['elo_p1'] + $game['elo_p2'];
 
         // Partner.
         $partner = $partners[$partnerid] ?? [
@@ -229,14 +246,17 @@ foreach ($opponents as $opponentid => $opponent) {
 // Sessions.
 $sessioncount = count($sessions);
 $gamecount = count($games);
+$winrate = $gamecount > 0 ? round($wins / $gamecount * 100, 1) : 0;
 $gps = round($gamecount / $sessioncount, 1);
-echo write_stats_detail_line(null, ["$gamecount games", "$sessioncount sessions", "$gps gms/sess"]);
+echo html::stats_detail_line(null, ["$gamecount games", "$sessioncount sessions", "$gps gms/sess"]);
+echo html::stats_detail_line(null, ["$wins wins", "$losses losses", "$winrate% won"]);
 
 // Last 10 games.
 echo '<div class="player-stats-details">';
 echo '<div class="stats-label">Last 10 games:</div>';
 echo '<div class="player-form">';
 $i = 0;
+$form = array_reverse($form);
 foreach ($form as $f) {
     echo '<div class="form-' . strtolower($f) . '">' . $f . '</div>';
     $i++;
@@ -258,44 +278,55 @@ if ($losses > 0) {
 } else {
     $lg_avg = 0;
 }
-echo write_stats_detail_line('Avg goal diff',
+echo html::stats_detail_line('~Goal diff',
     ["+$wg_avg ahead", "$lg_avg behind"]);
+
+// Avg ELOs.
+$own_elo = round($own_elo / $gs, 0);
+$partner_elo = round($partner_elo / $gs, 0);
+$opponent_elo = round($opponent_elo / $gs / 2, 0);
+$own_elo_delta = format_elo($partner_elo - $own_elo, 'higher', 'lower', true);
+$opponent_elo_delta = format_elo($opponent_elo - $own_elo, 'higher', 'lower');
+echo html::stats_detail_line('~Partner ELO',
+    [$partner_elo, $own_elo_delta]);
+echo html::stats_detail_line('~Opponent ELO',
+    [$opponent_elo, $opponent_elo_delta]);
 
 // Main partner.
 if (isset($main_partner_id)) {
     $main_partner = write_player(get_player($main_partner_id));
 }
-echo write_stats_detail_line('Main partner', [$main_partner, "$main_partner_gs games"]);
+echo html::stats_detail_line('Main partner', [$main_partner, "$main_partner_gs games"]);
 
 // Best partner.
 if (isset($best_partner_id)) {
     $best_partner = write_player(get_player($best_partner_id));
 }
-echo write_stats_detail_line('Best partner', [$best_partner, format_elo($best_partner_elo)]);
+echo html::stats_detail_line('Best partner', [$best_partner, format_elo($best_partner_elo)]);
 
 // Worst partner.
 if (isset($worst_partner_id)) {
     $worst_partner = write_player(get_player($worst_partner_id));
 }
-echo write_stats_detail_line('Worst partner', [$worst_partner, format_elo($worst_partner_elo)]);
+echo html::stats_detail_line('Worst partner', [$worst_partner, format_elo($worst_partner_elo)]);
 
 // Main opponent.
 if (isset($main_opponent_id)) {
     $main_opponent = write_player(get_player($main_opponent_id));
 }
-echo write_stats_detail_line('Main opponent', [$main_opponent, "$main_opponent_gs games"]);
+echo html::stats_detail_line('Main opponent', [$main_opponent, "$main_opponent_gs games"]);
 
 // Favourite opponent.
 if (isset($best_opponent_id)) {
     $best_opponent = write_player(get_player($best_opponent_id));
 }
-echo write_stats_detail_line('Fav opponent', [$best_opponent, format_elo($best_opponent_elo)]);
+echo html::stats_detail_line('Fav opponent', [$best_opponent, format_elo($best_opponent_elo)]);
 
 // Nemesis.
 if (isset($worst_opponent_id)) {
     $worst_opponent = write_player(get_player($worst_opponent_id));
 }
-echo write_stats_detail_line('Nemesis', [$worst_opponent, format_elo($worst_opponent_elo)]);
+echo html::stats_detail_line('Nemesis', [$worst_opponent, format_elo($worst_opponent_elo)]);
 
 // Trophies.
 
@@ -309,7 +340,8 @@ echo '<div class="elo-stats-details">';
 echo "<span>Current: $elo</span><span>High: $elo_high</span><span>Low: $elo_low</span>";
 echo '</div>';
 echo '<div class="chart-container">';
-echo '<canvas id="elo-chart"></canvas>';
+echo '<canvas id="elo-chart"></canvas></div>';
+echo '</div>';
 
 ?>
 <script src="/js/ext/chart.js"> </script>
@@ -370,7 +402,65 @@ echo '<canvas id="elo-chart"></canvas>';
     config
   );
 </script>
+
+
+<!-- --------------------Highlights-------------------- -->
+
+<div class="player-section">
+    <div class="player-subheader" style=<?php echo $playerstyle?>>Highlights</div>
+
+    <?php
+    //Define table columns.
+    $cols = ['Date',
+            'Winner',
+            'G+',
+            'G-',
+            'Loser',
+            'ELO'];
+    $table['cols'] = $cols;
+    $table['rows'] = [];
+
+    // Sort & limit to 5 highlights.
+    krsort($highlights);
+    if (count($highlights) > 5) {
+        $highlights = array_slice($highlights, 0, 5, true);
+    }
+    foreach ($highlights as $game) {
+        $row = html::game_row($game);
+        $table['rows'][] = $row;
+    }
+    echo html::table($table, 'table-highlights');
+    ?>
 </div>
+
+<!-- --------------------Low points-------------------- -->
+
+<div class="player-section-odd">
+    <div class="player-subheader" style=<?php echo $playerstyle?>>Low Points</div>
+
+    <?php
+    //Define table columns.
+    $cols = ['Date',
+            'Winner',
+            'G+',
+            'G-',
+            'Loser',
+            'ELO'];
+    $table['cols'] = $cols;
+    $table['rows'] = [];
+
+    // Sort & limit to 5 low points.
+    krsort($lowpoints);
+    if (count($lowpoints) > 5) {
+        $lowpoints = array_slice($lowpoints, 0, 5, true);
+    }
+    foreach ($lowpoints as $game) {
+        $row = html::game_row($game);
+        $table['rows'][] = $row;
+    }
+    echo html::table($table, 'table-lowpoints');
+    ?>
+
 </div>
 
 <!-- --------------------Table of partners-------------------- -->
@@ -469,6 +559,11 @@ $(document).ready(function() {
     dtOptions.order = [[6, 'asc']];
     dtOptions.language.info = '_TOTAL_ opponents';
     $('#table-opponents').DataTable(dtOptions);
+    dtOptions.order = [[5, 'desc']];
+    dtOptions.language.info = '_TOTAL_ highlights';
+    $('#table-highlights').DataTable(dtOptions);
+    dtOptions.language.info = '_TOTAL_ low points';
+    $('#table-lowpoints').DataTable(dtOptions);
 });
 </script>
 
@@ -478,4 +573,4 @@ echo '<div class="player-section">';
 echo '<div class="player-subheader" style=' . $playerstyle . '>Awards</div>';
 echo '<div class="awards-placeholder">will be awarded at end of season.</div>';
 
-echo print_footer();
+echo html::footer();

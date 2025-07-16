@@ -492,6 +492,9 @@ td.gm-cell::before {
     display: flex;
     justify-content: space-between;
 }
+.player-stats-details.no-title > div {
+    text-align: center;
+}
 .player-stats-details:nth-of-type(odd) {
     background-color: var(--verydarkgrey);
 }

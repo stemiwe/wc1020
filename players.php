@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/lib/config.php';
-echo print_menu();
+echo html::menu();
 
 // Get filter vars.
 $filter = get_timefilter();
 $usefilter = false;
 if (isset($filter['sql'])) {
     $usefilter = true;
-    echo print_filter($filter);
+    echo html::filter($filter);
 }
 
 // Define table columns.
@@ -32,6 +32,13 @@ $table['cols'][] = 'ELO';
 // Table rows.
 $table['rows'] = [];
 $players = $DB->query("SELECT * FROM players")->fetchAll();
+
+// Regulars only?
+if ($filter['filter'] == 'regulars') {
+    $gamecount = $DB->count('games');
+    $cutoff = $gamecount / 10;
+}
+
 foreach ($players as $player) {
 
     $player_id = $player['id'];
@@ -88,7 +95,7 @@ foreach ($players as $player) {
     }
 
     // Skip players that didnt compete this session/season.
-    if ($games == 0) {
+    if ($games == 0 || (isset($cutoff) && $games < $cutoff)) {
         continue;
     }
 
@@ -118,7 +125,7 @@ foreach ($players as $player) {
     $table['rows'][] = $row;
 }
 
-echo print_table($table);
+echo html::table($table);
 
 ?>
 
@@ -133,4 +140,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php echo print_footer();?>
+<?php echo html::footer();?>
