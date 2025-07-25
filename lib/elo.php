@@ -1,6 +1,14 @@
 <?php
 
-// Functions for elo, thx deepseek.
+/**
+ * Calculate ELO difference.
+ *
+ * @param array $winners ELO ratings of winning players.
+ * @param array $losers ELO ratings of losing players.
+ * @param int $gd Goal difference.
+ *
+ * @return float ELO difference for this game.
+ */
 function elo_difference(array $winners, array $losers, int $gd): float {
 
     // K factor - adjusts the sensitivity of the rating change.
