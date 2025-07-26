@@ -7,7 +7,7 @@ $CFG = new stdClass();
 $CFG->nocache = true;
 $CFG->season = 1;
 $CFG->testsite = false;
-$CFG->autologinip = '213.147.167.227';
+$CFG->autologinip = '213.147.166.79';
 
 // Reporting.
 ini_set('display_errors', 1);

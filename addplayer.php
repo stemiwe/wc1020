@@ -20,11 +20,7 @@ if (count($_POST) > 0) {
     $color = $_POST['color'];
 
     // Check if name already exists.
-    $stmt = $DB->pdo->prepare("SELECT COUNT(*) FROM players WHERE name = :name");
-    $stmt->bindParam(':name', $name);
-    $stmt->execute();
-    $count = $stmt->fetchColumn();
-    if ($count > 0) {
+    if ($dupe = $DB->get('players', '*', ['name' => $name])) {
         $error = 'Dein Namen gibts scho, oida!';
 
         // Temporary solution to change player color.

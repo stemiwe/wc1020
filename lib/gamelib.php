@@ -5,7 +5,7 @@
  *
  * @return array
  */
-function get_timefilter() {
+function get_timefilter($include_regulars = true) {
     global $DB;
 
     // Get filter parameters.
@@ -15,7 +15,12 @@ function get_timefilter() {
         $timefilter = "session";
     }
 
-    $filter = [        
+    // No regulars filter?
+    if (!$include_regulars && $timefilter == 'regulars') {
+        $timefilter = 'session';
+    }
+
+    $filter = [
         'col' => '',
         'filter' => $timefilter,
     ];
@@ -52,7 +57,8 @@ function get_timefilter() {
     return ['options' => $options,
             'default' => $default,
             'sql' => $sql,
-            'col' => $col];
+            'col' => $col,
+            'filter' => $timefilter];
 }
 
 
@@ -221,6 +227,7 @@ function add_game($game) {
     $p3_id = $game['p3'];
     $p4_id = $game['p4'];
 
+    // Get team IDs.
     $t1p1_id = $p1_id < $p2_id ? $p1_id : $p2_id;
     $t1p2_id = $p1_id < $p2_id ? $p2_id : $p1_id;
     $t2p1_id = $p3_id < $p4_id ? $p3_id : $p4_id;
@@ -239,13 +246,6 @@ function add_game($game) {
     $player3 = $DB->get("players", "*", ["id" => $game['p3']]);
     $player4 = $DB->get("players", "*", ["id" => $game['p4']]);
 
-    // Calculate ELO if not provided.
-    if (!isset($game['elo_diff'])) {
-        $elo1 = [$player1['elo'], $player2['elo']];
-        $elo2 = [$player3['elo'], $player4['elo']];
-        $game['elo_diff'] = elo_difference($elo1, $elo2, $game['wg'] - $game['lg']);
-    }
-
     // Create game record.
     $session = date('Y-m-d', $date);
     $record = [
@@ -257,12 +257,20 @@ function add_game($game) {
         'date' => $session,
         'season' => $CFG->season,
         'timestamp' => time(),
-        'elo_diff' => $game['elo_diff'],
         'elo_p1' => $player1['elo'],
         'elo_p2' => $player2['elo'],
         'elo_p3' => $player3['elo'],
         'elo_p4' => $player4['elo'],
     ];
+
+    // Calculate ELO if not provided.
+    if (!isset($game['elo_diff'])) {
+        $record['elo_diff'] = ELO::diff($record);
+    } else {
+        $record['elo_diff'] = $game['elo_diff'];
+    }
+
+    // Insert game record.
     $DB->insert("games", $record);
 
     // Update ELO for players.

@@ -248,8 +248,9 @@ $sessioncount = count($sessions);
 $gamecount = count($games);
 $winrate = $gamecount > 0 ? round($wins / $gamecount * 100, 1) : 0;
 $gps = round($gamecount / $sessioncount, 1);
-echo html::stats_detail_line(null, ["$gamecount games", "$sessioncount sessions", "$gps gms/sess"]);
-echo html::stats_detail_line(null, ["$wins wins", "$losses losses", "$winrate% won"]);
+echo html::stats_detail_line('Joined', [date('Y-m-d', $player['joined']), ' ']);
+echo html::stats_detail_line('Sessions', ["$sessioncount sessions", "$gps gms/sess"]);
+echo html::stats_detail_line('Games', ["$gamecount games", "$winrate% won"]);
 
 // Last 10 games.
 echo '<div class="player-stats-details">';

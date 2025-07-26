@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config.php';
+require_login();
 
 global $DB;
 
@@ -28,15 +29,16 @@ foreach ($games as $game) {
             $elo = 1000;
         }
 
-        // Write player ELO into games table.
+        // Update player ELO.
         $game['elo_p' . $key] = $elo;
     }
 
     // Recalculate ELO diff.
-    $elo_diff_new = elo_difference([$game['elo_p1'], $game['elo_p2']], [$game['elo_p3'], $game['elo_p4']], $game['wg'] - $game['lg']);
+    $elo_diff_new = ELO::diff($game);
 
     // Update player ELO array.
     foreach ($players as $key => $playerid) {
+
         if ($key == 1 || $key == 2) {
             // Player is on the winning team.
             $elos[$playerid] = ($elos[$playerid] ?? 1000) + $elo_diff_new;

@@ -48,9 +48,16 @@ if (count($_POST) > 0) {
         $player2 = $DB->get("players", "*", ["id" => $p2]);
         $player3 = $DB->get("players", "*", ["id" => $p3]);
         $player4 = $DB->get("players", "*", ["id" => $p4]);
-        $elo1 = [$player1['elo'], $player2['elo']];
-        $elo2 = [$player3['elo'], $player4['elo']];
-        $elo_diff = elo_difference($elo1, $elo2, $_POST['wg'] - $_POST['lg']);
+        $game = [
+            'timestamp' => time(),
+            'elo_p1' => $player1['elo'],
+            'elo_p2' => $player2['elo'],
+            'elo_p3' => $player3['elo'],
+            'elo_p4' => $player4['elo'],
+            'wg' => $_POST['wg'],
+            'lg' => $_POST['lg']
+        ];
+        $elo_diff = ELO::diff($game);
 
         // Redirect.
         $_SESSION['game'] = [

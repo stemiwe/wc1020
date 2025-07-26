@@ -3,7 +3,7 @@ require_once __DIR__ . '/lib/config.php';
 echo html::menu();
 
 // Get filter vars.
-$filter = get_timefilter();
+$filter = get_timefilter(false);
 $usefilter = false;
 if (isset($filter['sql'])) {
     $usefilter = true;
