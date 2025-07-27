@@ -128,6 +128,15 @@ function hsl_to_hex($h, $s, $l) {
     return sprintf("#%02x%02x%02x", $r * 255, $g * 255, $b * 255);
 }
 
+/**
+ * Helper function for HSL to HEX conversion.
+ *
+ * @param float $p
+ * @param float $q
+ * @param float $t
+ *
+ * @return float
+ */
 function hue_to_rgb($p, $q, $t) {
     if ($t < 0) $t += 1;
     if ($t > 1) $t -= 1;
@@ -135,4 +144,51 @@ function hue_to_rgb($p, $q, $t) {
     if ($t < 1/2) return $q;
     if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
     return $p;
+}
+
+function hex_to_rgb($hex) {
+    $hex = ltrim($hex, '#');
+
+    if (strlen($hex) === 3) {
+        $hex = $hex[0].$hex[0] . $hex[1].$hex[1] . $hex[2].$hex[2];
+    }
+
+    return [
+        'r' => hexdec(substr($hex, 0, 2)),
+        'g' => hexdec(substr($hex, 2, 2)),
+        'b' => hexdec(substr($hex, 4, 2)),
+    ];
+}
+
+/**
+ * Gives relative luminance of a color.
+ * @param mixed $rgb
+ * @return float|int
+ */
+function relative_luminance($rgb) {
+    foreach ($rgb as &$channel) {
+        $c = $channel / 255;
+        $channel = ($c <= 0.03928) ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+    }
+
+    // Formula from WCAG
+    return 0.2126 * $rgb['r'] + 0.7152 * $rgb['g'] + 0.0722 * $rgb['b'];
+}
+
+/**
+ * Gives contrast ratio between two colors.
+ * @param mixed $hex1
+ * @param mixed $hex2
+ * @return float|int
+ */
+function contrast_ratio($hex1, $hex2) {
+    $rgb1 = hex_to_rgb($hex1);
+    $rgb2 = hex_to_rgb($hex2);
+    $lum1 = relative_luminance($rgb1);
+    $lum2 = relative_luminance($rgb2);
+
+    $lighter = max($lum1, $lum2);
+    $darker = min($lum1, $lum2);
+
+    return ($lighter + 0.05) / ($darker + 0.05);
 }
