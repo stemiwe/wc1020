@@ -288,6 +288,14 @@ function add_game($game) {
         ]);
     }
 
+    // Update stats.
+    update_stats($t1_id, 'team', 'win');
+    update_stats($t2_id, 'team', 'loss');
+    update_stats($p1_id, 'player', 'win');
+    update_stats($p2_id, 'player', 'win');
+    update_stats($p3_id, 'player', 'loss');
+    update_stats($p4_id, 'player', 'loss');
+
     // Commit.
     $result = $DB->pdo->commit();
 
@@ -315,11 +323,16 @@ function remove_game($game) {
 
     // Get params.
     $winner = $DB->query("SELECT * FROM teams WHERE ID = " . $game['winner'])->fetch();
+    $winnerid = $winner['id'];
     $loser = $DB->query("SELECT * FROM teams WHERE ID = " . $game['loser'])->fetch();
+    $loserid = $loser['id'];
     $player1 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p1'])->fetch();
     $player2 = $DB->query("SELECT * FROM players WHERE ID = " . $winner['p2'])->fetch();
     $player3 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p1'])->fetch();
     $player4 = $DB->query("SELECT * FROM players WHERE ID = " . $loser['p2'])->fetch();
+    $winners = [$player1['id'], $player2['id']];
+    $losers = [$player3['id'], $player4['id']];
+    $timestamp = $game['timestamp'];
 
     // Give back ELO.
     $elo = $game['elo_diff'];
@@ -331,6 +344,54 @@ function remove_game($game) {
     $DB->update("players", ['elo' => $player2['elo']], ['id' => $player2['id']]);
     $DB->update("players", ['elo' => $player3['elo']], ['id' => $player3['id']]);
     $DB->update("players", ['elo' => $player4['elo']], ['id' => $player4['id']]);
+
+    // Shorten team streaks.
+    $streak = $DB->get('stats', '*', [
+        'type' => 'team_streak',
+        'entity_id' => $winnerid,
+        'end' => 0
+    ]);
+    if ($streak) {
+        $streak['value'] -= 1;
+        $DB->update('stats', $streak, ['id' => $streak['id']]);
+    }
+
+    // Shorten player streaks.
+    foreach ($winners as $id) {
+        $streak = $DB->get('stats', '*', [
+            'type' => 'player_streak',
+            'entity_id' => $id,
+            'end' => 0
+        ]);
+        if ($streak) {
+            $streak['value'] -= 1;
+            $DB->update('stats', $streak, ['id' => $streak['id']]);
+        }
+    }
+
+    // Set team streaks back to active.
+    $streak = $DB->get('stats', '*', [
+        'type' => 'team_streak',
+        'entity_id' => $loserid,
+        'end' => $timestamp
+    ]);
+    if ($streak) {
+        $streak['end'] = 0;
+        $DB->update('stats', $streak, ['id' => $streak['id']]);
+    }
+
+    // Set player streaks back to active.
+    foreach ($losers as $id) {
+        $streak = $DB->get('stats', '*', [
+            'type' => 'player_streak',
+            'entity_id' => $id,
+            'end' => $timestamp
+        ]);
+        if ($streak) {
+            $streak['end'] = 0;
+            $DB->update('stats', $streak, ['id' => $streak['id']]);
+        }
+    }
 
     // Delete game.
     $DB->delete("games", ['id' => $game['id']]);

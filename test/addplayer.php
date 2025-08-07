@@ -3,15 +3,12 @@
 require_once __DIR__ . '/lib/config.php';
 require_login();
 
-$error = $_SESSION['error'] ?? null;
-unset($_SESSION['error']); // Clear error after displaying it
-
 // Submit.
 if (count($_POST) > 0) {
 
     // Validation.
     if ($_POST['name'] == '') {
-        $_SESSION['error'] = 'Ohne Namen geht nix, oida!';
+        $error = 'Ohne Namen geht nix, oida!';
         $valid = false;
     } else {
         $valid = true;
@@ -21,25 +18,6 @@ if (count($_POST) > 0) {
     $name = $_POST['name'];
     $bg = $_POST['bg'];
     $color = $_POST['color'];
-    $contrast = contrast_ratio($bg, $color);
-
-    // Hallo Emu.
-    if ($contrast < 2) {
-        $_SESSION['error'] = 'Des kann ma ned lesen, oida!';
-        $valid = false;
-    }
-
-    // Check if name is too long.
-    if (strlen($name) > 14) {
-        $_SESSION['error'] = 'Nur Name, koan Roman, oida!';
-        $valid = false;
-    }
-
-    // Stop if not valid.
-    if (!$valid) {
-        header("Location: addplayer.php");
-        exit();
-    }
 
     // Check if name already exists.
     if ($dupe = $DB->get('players', '*', ['name' => $name])) {
@@ -49,6 +27,8 @@ if (count($_POST) > 0) {
         $DB->update("players", ['bg' => $bg, 'color' => $color], ['name' => $name]);
         header("Location: players.php?time=session");
         exit();
+
+        $valid = false;
     }
 
     // Start transaction.

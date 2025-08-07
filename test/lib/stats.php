@@ -1,6 +1,51 @@
 <?php
 
 /**
+ * Stats for winners.
+ * @param int $id
+ * @param string $entity_type
+ * @param string $result
+ */
+
+function update_stats($id, $entity_type, $result) {
+
+    global $DB;
+    $now = time();
+
+    // Streaks.
+    $type = $entity_type . '_streak';
+
+    // End streak.
+    if ($result == 'loss') {
+        if ($record = $DB->get('stats', '*',
+            ['entity_id' => $id, 'type' => $type, 'end' => 0])) {
+            $record['end'] = $now;
+            $DB->update('stats', $record, ['id' => $record['id']]);
+        }
+
+    } elseif ($result == 'win') {
+
+        // Prolong streak.
+        if ($record = $DB->get('stats', '*',
+            ['entity_id' => $id, 'type' => $type, 'end' => 0])) {
+            $record['value'] += 1;
+            $DB->update('stats', $record, ['id' => $record['id']]);
+
+        // Start streak.
+        } else {
+            $record = [
+                'entity_id' => $id,
+                'type' => $type,
+                'value' => 1,
+                'start' => $now,
+                'end' => 0,
+            ];
+            $DB->insert('stats', $record);
+        }
+    }
+}
+
+/**
  * Gets a player from DB.
  * @param int $id
  */
@@ -87,47 +132,4 @@ function get_medals($date) {
     }
 
     return $medals;
-}
-
-/**
- * Converts a timestamp to metric time (CET).
- *
- * @param int $timestamp
- * @return float
- */
-function convert_to_metric_time(int $timestamp): float {
-
-    // Shift 8 hours earlier to avoid post-midnight wraparound
-    $timestamp = $timestamp - (8 * 3600);
-
-    // Create DateTime from Unix timestamp (UTC base)
-    $date = new DateTime('@' . $timestamp);
-    $date->setTimezone(new DateTimeZone('Europe/Berlin')); // CET + handles daylight saving
-
-    $hours = (int) $date->format('G'); // 0–23 (no leading zero)
-    $minutes = (int) $date->format('i'); // 00–59
-
-    return round($hours + ($minutes / 60), 2); // Metric format (e.g. 14.75)
-}
-
-/**
- * Converts back to real time.
- *
- * @param float $metric_time
- * @return string
- */
-function convert_to_real_time(float $metric_time): string {
-    // Convert metric time back to hours and minutes
-    $hours = floor($metric_time);
-    $minutes = round(($metric_time - $hours) * 60);
-
-    // Create DateTime object in CET
-    $date = new DateTime();
-    $date->setTime($hours, $minutes);
-    $date->setTimezone(new DateTimeZone('Europe/Berlin')); // CET + handles daylight saving
-
-    // Shift +8 hours
-    $date->add(new DateInterval('PT8H'));
-
-    return $date->format('H:i'); // Format as HH:MM
 }

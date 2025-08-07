@@ -48,9 +48,6 @@ $streak = ['current' => 0,
            'top' => 0,
            'ended' => false
 ];
-$gametimes = [];
-$wintimes = [];
-$losstimes = [];
 
 // Get data from games.
 foreach ($games as $game) {
@@ -287,11 +284,8 @@ echo '</div>';
 echo '</div>';
 
 // Streak.
-if ($streak['top'] > 0) {
-    $streakend = $streak['ended'] ? 'ended on <br>' . $streak['ended'] : 'ongoing!';
-    echo html::stats_detail_line('Top winning streak',
-    [$streak['top'] . ' games', $streakend]);
-}
+echo html::stats_detail_line('Top winning streak',
+    ["+$wg_avg ahead", "$lg_avg behind"]);
 
 // Avg margins.
 if ($wins > 0) {
@@ -573,25 +567,6 @@ echo '</div>';
     </table>
 </div>
 
-<?php
-// --------------------Awards --------------------
-$sql = "SELECT * FROM awards WHERE p1 = :pid OR p2 = :pid ORDER BY season ASC, weight ASC";
-$awards = $DB->query($sql, [':pid' => $playerid])->fetchAll();
-
-if ($awards) {
-    // Awards.
-    echo '<div class="player-section">';
-    echo '<div class="player-subheader" style=' . $playerstyle . '>Awards</div>';
-
-    echo '<div class="award-container">';
-    foreach ($awards as $award) {
-        echo html::award($award);
-    }
-    echo '</div>';
-}
-
-?>
-
 <!-- Back button -->
 <a class="back-button" href="<?php echo $returnurl?>">Back</a>
 
@@ -613,5 +588,9 @@ $(document).ready(function() {
 </script>
 
 <?php
+
+echo '<div class="player-section">';
+echo '<div class="player-subheader" style=' . $playerstyle . '>Awards</div>';
+echo '<div class="awards-placeholder">will be awarded at end of season.</div>';
 
 echo html::footer();

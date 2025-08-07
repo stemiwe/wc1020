@@ -102,7 +102,7 @@ class html {
             <a class="button submenu-button menu-item" data-parent="stats" href="{$CFG->wwwroot}/stats/sessions.php">Sessions</a>
             <a class="button submenu-button menu-item" data-parent="stats" href="{$CFG->wwwroot}/stats/mvps.php">MVPs</a>
             <a class="button submenu-button menu-item" data-parent="stats" href="{$CFG->wwwroot}/stats/medals.php">Medals</a>
-            <a class="button submenu-button menu-item" data-parent="stats" href="{$CFG->wwwroot}/stats/seasons.php">Seasons</a>
+            <a class="button submenu-button menu-item" data-parent="stats" href="{$CFG->wwwroot}/stats/streaks.php">Streaks</a>
         </div>
     </div>
     HTML;
@@ -299,34 +299,5 @@ class html {
         $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$elofontsize}rem; color: {$elocolor};'>{$elo_diff}</span>"];
 
         return $row;
-    }
-
-    /**
-     * Prints an award.
-     *
-     * @param array $award
-     *
-     * @return string
-     */
-    public static function award($award) {
-
-        global $DB;
-
-        $p1 = $DB->get('players', '*', ['id' => $award['p1']]);
-        $html = '<div class="award">';
-        if (isset($award['season'])) {
-            $html .= '<div class="award-season">Season ' . $award['season'] . '</div>';
-        }
-        $html .= '<div class="award-label">' . $award['label'] . '</div>';
-        $html .= '<img class="award-img" src="/img/awards/' . $award['img'] . '.png" alt="' . $award['description'] . '">';
-        $html .= '<div class="award-player">' . write_player($p1) . '</div>';
-        if ($award['p2']) {
-            $p2 = $DB->get('players', '*', ['id' => $award['p2']]);
-            $html .= '<div class="award-player">' . write_player($p2) . '</div>';
-        }
-        $html .= '<div class="award-description">' . $award['description'] . '</div>';
-        $html .= '</div>';
-
-        return $html;
     }
 }

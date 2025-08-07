@@ -5,9 +5,9 @@ session_start();
 // Config.
 $CFG = new stdClass();
 $CFG->nocache = true;
-$CFG->season = 2;
-$CFG->testsite = false;
-$CFG->autologinip = '213.147.166.79';
+$CFG->season = 1;
+$CFG->testsite = true;
+$CFG->autologinip = '213.147.167.227';
 
 // Reporting.
 ini_set('display_errors', 1);
