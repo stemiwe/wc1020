@@ -8,6 +8,7 @@ $CFG->nocache = true;
 $CFG->season = 2;
 $CFG->testsite = false;
 $CFG->autologinip = '213.147.166.79';
+date_default_timezone_set('Europe/Vienna'); // Or 'Europe/Berlin', both use CET/CEST
 
 // Reporting.
 ini_set('display_errors', 1);

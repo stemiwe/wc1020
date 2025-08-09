@@ -131,3 +131,30 @@ function convert_to_real_time(float $metric_time): string {
 
     return $date->format('H:i'); // Format as HH:MM
 }
+
+/**
+ * Gets the average time from an array of times.
+ *
+ * @param array $time
+ *
+ * @return string
+ */
+
+function convert_back_to_time($time): string {
+
+    // Step 3: Normalize value to 0–24 (wrap around if needed)
+    $time = fmod($time, 24);
+    if ($time < 0) {
+        $time += 24;
+    }
+
+    // Step 4: Convert decimal back to hours and minutes
+    $avgHour = floor($time);
+    $avgMinutes = round(($time - $avgHour) * 60);
+
+    // Step 5: Optional - pad with leading zeroes for formatting
+    $formattedTime = sprintf('%02d:%02d', $avgHour, $avgMinutes);
+
+    return $formattedTime;
+
+}

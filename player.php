@@ -58,6 +58,13 @@ foreach ($games as $game) {
     $gs++;
     $sessions[$game['date']] = 1;
 
+    // Make game time decimal.
+    $hour = date('H', $game['timestamp']) - 8;
+    $minutes = date('i', $game['timestamp']);
+    $minutes = $minutes / 60;
+    $time = $hour + $minutes;
+    $gametimes[] = $time;
+
     // Get teams.
     $winnerteam = $DB->query("SELECT * FROM teams WHERE id = " . $game['winner'])->fetch();
     $loserteam = $DB->query("SELECT * FROM teams WHERE id = " . $game['loser'])->fetch();
@@ -71,6 +78,7 @@ foreach ($games as $game) {
         $wgs += $game['wg'] - $game['lg'];
         $wins ++;
         $highlights[$game['elo_diff']] = $game;
+        $wintimes[] = $time;
 
         // Streak.
         $streak['current']++;
@@ -135,6 +143,7 @@ foreach ($games as $game) {
         $lgs += $game['lg'] - $game['wg'];
         $losses ++;
         $lowpoints[$game['elo_diff']] = $game;
+        $losstimes[] = $time;
 
         // Streak.
         $streak['current'] = 0;
@@ -317,6 +326,20 @@ echo html::stats_detail_line('~Partner ELO',
     [$partner_elo, $own_elo_delta]);
 echo html::stats_detail_line('~Opponent ELO',
     [$opponent_elo, $opponent_elo_delta]);
+
+// Times played.
+$avg_time = convert_back_to_time(array_sum($gametimes) / count($gametimes) + 8);
+$avg_time_won = convert_back_to_time(array_sum($wintimes) / count($wintimes) + 8);
+$avg_time_lost = convert_back_to_time(array_sum($losstimes) / count($losstimes) + 8);
+$min_time = convert_back_to_time(min($gametimes) + 8);
+$max_time = convert_back_to_time(max($gametimes) + 8);
+$min_time_won = convert_back_to_time(min($wintimes) + 8);
+$max_time_won = convert_back_to_time(max($wintimes) + 8);
+$min_time_lost = convert_back_to_time(min($losstimes) + 8);
+$max_time_lost = convert_back_to_time(max($losstimes) + 8);
+// echo html::stats_detail_line('Times played', ["$min_time - $max_time", "~$avg_time"]);
+// echo html::stats_detail_line('Times won', ["$min_time_won - $max_time_won", "~$avg_time_won"]);
+// echo html::stats_detail_line('Times lost', ["$min_time_lost - $max_time_lost", "~$avg_time_lost"]);
 
 // Main partner.
 if (isset($main_partner_id)) {
