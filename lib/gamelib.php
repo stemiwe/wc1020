@@ -25,7 +25,7 @@ function get_timefilter($include_regulars = true) {
         'filter' => $timefilter,
     ];
 
-    // Set col to filter, because i misnamed the session col initially..
+    // Set col to filter, because i misnamed the session col initially.
     // ToDo: rename session col.
     if ($timefilter == 'session') {
         $col = 'date';
@@ -36,15 +36,15 @@ function get_timefilter($include_regulars = true) {
     }
 
     // Get disctinct rows.
-    $query = "SELECT DISTINCT $col from games ORDER BY $col DESC";
-    $entities = $DB->query($query)->fetchAll();
+    $query = "SELECT DISTINCT $col from games ORDER BY $col ASC";
+    $entities = $DB->query($query)->fetchAll(PDO::FETCH_COLUMN);
 
     $options = [];
     foreach ($entities as $entity) {
-        $options[] = $entity[0];
+        $options[] = $entity;
     }
     if ($entities) {
-        $default = $entities[0][0];
+        $default = end($entities);
         if (isset($_GET['value'])) {
             $default = $_GET['value'];
         }
@@ -143,7 +143,10 @@ function write_player($player) {
     }
     $id = $player['id'];
     $link = "/player.php?id=$id&returnto=$returnurl";
-    $string = '<a href="' . $link  . '"class="player-name" style="' . $style . '">' . htmlspecialchars($player['name']) . '</a>';
+    $name = htmlspecialchars($player['name']);
+    $img = html::player_image($name);
+    $string = '<a href="' . $link  . '"class="player-name" style="' . $style . '"><div>' .
+        $name . '</div>' . $img .'</a>';
     return $string;
 }
 
@@ -261,13 +264,19 @@ function add_game($game) {
         'elo_p2' => $player2['elo'],
         'elo_p3' => $player3['elo'],
         'elo_p4' => $player4['elo'],
+        's_elo_p1' => $player1['s_elo'],
+        's_elo_p2' => $player2['s_elo'],
+        's_elo_p3' => $player3['s_elo'],
+        's_elo_p4' => $player4['s_elo'],
     ];
 
     // Calculate ELO if not provided.
     if (!isset($game['elo_diff'])) {
         $record['elo_diff'] = ELO::diff($record);
+        $record['s_elo_diff'] = ELO::diff($record, 's_elo');
     } else {
         $record['elo_diff'] = $game['elo_diff'];
+        $record['s_elo_diff'] = $game['s_elo_diff'];
     }
 
     // Insert game record.
@@ -278,11 +287,17 @@ function add_game($game) {
     $elo2 = $player2['elo'] + $game['elo_diff'];
     $elo3 = $player3['elo'] - $game['elo_diff'];
     $elo4 = $player4['elo'] - $game['elo_diff'];
+    $s_elo1 = $player1['s_elo'] + $game['s_elo_diff'];
+    $s_elo2 = $player2['s_elo'] + $game['s_elo_diff'];
+    $s_elo3 = $player3['s_elo'] - $game['s_elo_diff'];
+    $s_elo4 = $player4['s_elo'] - $game['s_elo_diff'];
     for ($i = 1; $i <= 4; $i++) {
         $elokey = "elo$i";
+        $s_elokey = "s_elo$i";
         $playerkey = "p$i" . "_id";
         $DB->update("players", [
-            'elo' => $$elokey
+            'elo' => $$elokey,
+            's_elo' => $$s_elokey
         ], [
             'id' => $$playerkey
         ]);
@@ -341,10 +356,11 @@ function remove_game($game) {
  *
  * @param int $player_id
  * @param bool $only_thursdays
+ * @param int $season
  *
  * @return int
  */
-function get_player_sessions($player_id, $only_thursdays = true) {
+function get_player_sessions($player_id, $only_thursdays = true, $season = null) {
     global $DB;
 
     // Get the number of sessions for the player.
@@ -352,7 +368,10 @@ function get_player_sessions($player_id, $only_thursdays = true) {
             WHERE (winner IN (SELECT id FROM teams WHERE p1 = ? OR p2 = ?)
             OR loser IN (SELECT id FROM teams WHERE p1 = ? OR p2 = ?))";
     if ($only_thursdays) {
-        $sql .= "AND day = 'Do' ";
+        $sql .= " AND day = 'Do' ";
+    }
+    if ($season) {
+        $sql .= " AND season = $season";
     }
     $params = [$player_id, $player_id, $player_id, $player_id];
     $stmt = $DB->pdo->prepare($sql);

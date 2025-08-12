@@ -75,32 +75,6 @@ function get_weekday(string $dateString): string {
 }
 
 /**
- * Get a smooth color based on a percentage value.
- * @param mixed $value
- * @return string
- */
-function get_smooth_color_by_percentage($value) {
-
-    $percentage = ($value - 10) * (100 / 28);
-    $percentage = max(0, min(100, $percentage));
-
-    // Hue: 120° (green) to 0° (red)
-    $hue = 120 * (1 - $percentage / 100);
-
-    // Full saturation for vibrant colors
-    $saturation = 100;
-
-    // Adjust lightness for better visual progression
-    $lightness = 50 - 15 * cos($percentage * M_PI / 100);
-
-    // Darken the extremes slightly
-    if ($percentage < 10) $lightness *= 0.9;  // Darker greens
-    if ($percentage > 90) $lightness *= 0.7; // Darker reds
-
-    return hsl_to_hex($hue, $saturation, $lightness);
-}
-
-/**
  * Convert HSL to HEX color.
  *
  * @param float $h Hue (0-360)

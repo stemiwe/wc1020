@@ -54,10 +54,15 @@ if (count($_POST) > 0) {
             'elo_p2' => $player2['elo'],
             'elo_p3' => $player3['elo'],
             'elo_p4' => $player4['elo'],
+            's_elo_p1' => $player1['s_elo'],
+            's_elo_p2' => $player2['s_elo'],
+            's_elo_p3' => $player3['s_elo'],
+            's_elo_p4' => $player4['s_elo'],
             'wg' => $_POST['wg'],
             'lg' => $_POST['lg']
         ];
         $elo_diff = ELO::diff($game);
+        $s_elo_diff = ELO::diff($game, 's_elo');
 
         // Redirect.
         $_SESSION['game'] = [
@@ -67,7 +72,8 @@ if (count($_POST) > 0) {
             'player4' => $player4,
             'wg' => $_POST['wg'],
             'lg' => $_POST['lg'],
-            'elo_diff' => $elo_diff
+            'elo_diff' => $elo_diff,
+            's_elo_diff' => $s_elo_diff,
         ];
         header("Location: addgame_confirm.php");
         exit();

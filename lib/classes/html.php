@@ -160,7 +160,14 @@ class html {
                 $label = get_weekday($option);
             }
 
-            $html .= '<option value="' . $option . '">' . "$label $option</option>";
+            // Select default option.
+            if ($option == $filter['default']) {
+                $selected = ' selected';
+            } else {
+                $selected = '';
+            }
+
+            $html .= '<option ' . $selected . ' value="' . $option . '">' . "$label $option</option>";
         }
         $html .= "</select>";
         $html .= '<div class="filter-arrow" id="filter-next">&#9654;</div>';
@@ -259,10 +266,11 @@ class html {
      * Prints a game row for the games table.
      *
      * @param array $game
+     * @param bool $s_elo Whether to include sELO in the row.
      *
      * @return array $row
      */
-    public static function game_row($game) {
+    public static function game_row($game, $s_elo = false) {
 
         global $DB;
 
@@ -285,9 +293,11 @@ class html {
         $date = date('m-d', $game['timestamp']);
         $time = date('H:i', $game['timestamp']);
         $elo_diff = $game['elo_diff'];
-        $elocolor = get_smooth_color_by_percentage($elo_diff);
-        $elofontsize = $elo_diff / 20;
-        $elofontsize = round(max(1, min(2, $elofontsize)), 1);
+        $elofontsize = ELO::fontsize($elo_diff);
+        $elocolor = ELO::color($elo_diff);
+        $s_elo_diff = $game['s_elo_diff'];
+        $s_elofontsize = ELO::fontsize($s_elo_diff);
+        $s_elocolor = ELO::color($s_elo_diff);
 
         // Add to table.
         $row = [];
@@ -296,7 +306,11 @@ class html {
         $row[] = ['class' => 'gp-cell goal-cell', 'value' => $game['wg']];
         $row[] = ['class' => 'gm-cell goal-cell', 'value' => $game['lg']];
         $row[] = ['class' => 'player-cell', 'value' => write_player($loser_p1) . write_player($loser_p2)];
-        $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$elofontsize}rem; color: {$elocolor};'>{$elo_diff}</span>"];
+        if ($s_elo) {
+            $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$s_elofontsize}rem; color: {$s_elocolor};'>{$s_elo_diff}</span>"];
+        } else {
+            $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$elofontsize}rem; color: {$elocolor};'>{$elo_diff}</span>"];
+        }
 
         return $row;
     }
@@ -328,5 +342,36 @@ class html {
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Prints a player image.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function player_image($name) {
+
+        global $CFG;
+
+        // Check if player image exists.
+        $name = strtolower( $name);
+        $imgpath = '/img/avatars/';
+        $extensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+        $img = null;
+        foreach ($extensions as $ext) {
+            $fullimgpath = __DIR__ . '/../../img/avatars/' . $name . $ext;
+            if (file_exists($fullimgpath)) {
+                $img = $imgpath . $name . $ext;
+                break;
+            }
+        }
+
+        if ($img) {
+            return '<img class="player-image" src="' . $img . '" alt="' . $name . '">';
+        } else {
+            return null;
+        }
     }
 }

@@ -12,11 +12,11 @@ $_SESSION['stats'] = basename(__FILE__);
 <table id="table">
   <thead>
     <tr>
+      <th>Sai</th>
       <th>D</th>
       <th>Session</th>
       <th>Players</th>
       <th>Games</th>
-      <th>~Goals</th>
       <th>MVP</th>
       <th>ELO</th>
     </tr>
@@ -24,6 +24,7 @@ $_SESSION['stats'] = basename(__FILE__);
   <tbody>
     <?php
     $sql = "SELECT
+        g.season,
         g.date,
         SUM(g.wg) AS total_wg,
         SUM(g.lg) AS total_lg,
@@ -45,7 +46,6 @@ $_SESSION['stats'] = basename(__FILE__);
         $date = $row['date'];
         $rows = $row['game_count'];
         $goals = $row['total_wg'] + $total_lg = $row['total_lg'];
-        $avg_goals = $rows > 0 ? number_format($goals / $rows, 1) : '0.0';
 
         // Get total distinct players.
         $all_ids = array_merge(
@@ -63,11 +63,11 @@ $_SESSION['stats'] = basename(__FILE__);
         $medals = get_medals($date);
 
         echo '<tr>';
+        echo '<td class="number-cell">' . $row['season'] . '</td>';
         echo '<td>' . get_weekday($date) . '</td>';
         echo '<td class="date-cell">' . "$date</td>";
         echo '<td class="number-cell">' . "$players</td>";
         echo '<td class="number-cell">' . "$rows</td>";
-        echo '<td class="number-cell">' . "$avg_goals</td>";
         echo '<td class="player-cell">';
         foreach ($medals['gold'] as $mvp) {
             $player = $mvp['player'];
@@ -87,7 +87,7 @@ $_SESSION['stats'] = basename(__FILE__);
 <script>
 $(document).ready(function() {
     var dtOptions = <?php echo json_encode($datatables_config); ?>;
-    dtOptions.order = [[1, 'desc']];
+    dtOptions.order = [[2, 'desc']];
     dtOptions.language.info = '_TOTAL_ sessions';
     $('#table').DataTable(dtOptions);
 });

@@ -51,6 +51,9 @@ $streak = ['current' => 0,
 $gametimes = [];
 $wintimes = [];
 $losstimes = [];
+$partnerlist = [];
+$opponentlist = [];
+$totalplayers = $DB->query("SELECT COUNT(*) FROM players")->fetchColumn();
 
 // Get data from games.
 foreach ($games as $game) {
@@ -59,10 +62,7 @@ foreach ($games as $game) {
     $sessions[$game['date']] = 1;
 
     // Make game time decimal.
-    $hour = date('H', $game['timestamp']) - 8;
-    $minutes = date('i', $game['timestamp']);
-    $minutes = $minutes / 60;
-    $time = $hour + $minutes;
+    $time = time_to_decimal($game['timestamp']);
     $gametimes[] = $time;
 
     // Get teams.
@@ -90,14 +90,18 @@ foreach ($games as $game) {
         // Get partners and opponents.
         if ($winnerteam['p1'] == $playerid) {
             $partnerid = $winnerteam['p2'];
+            $partnerlist[$partnerid] = 1;
             $own_elo += $game['elo_p1'];
             $partner_elo += $game['elo_p2'];
         } else {
             $partnerid = $winnerteam['p1'];
+            $partnerlist[$partnerid] = 1;
             $own_elo += $game['elo_p2'];
             $partner_elo += $game['elo_p1'];
         }
         $opponentids = [$loserteam['p1'], $loserteam['p2']];
+        $opponentlist[$opponentids[0]] = 1;
+        $opponentlist[$opponentids[1]] = 1;
         $opponent_elo += $game['elo_p3'] + $game['elo_p4'];
 
         // Partner.
@@ -152,14 +156,18 @@ foreach ($games as $game) {
         // Get partners and opponents.
         if ($loserteam['p1'] == $playerid) {
             $partnerid = $loserteam['p2'];
+            $partnerlist[$partnerid] = 1;
             $own_elo += $game['elo_p3'];
             $partner_elo += $game['elo_p4'];
         } else {
             $partnerid = $loserteam['p1'];
+            $partnerlist[$partnerid] = 1;
             $own_elo += $game['elo_p4'];
             $partner_elo += $game['elo_p3'];
         }
         $opponentids = [$winnerteam['p1'], $winnerteam['p2']];
+        $opponentlist[$opponentids[0]] = 1;
+        $opponentlist[$opponentids[1]] = 1;
         $opponent_elo += $game['elo_p1'] + $game['elo_p2'];
 
         // Partner.
@@ -328,18 +336,33 @@ echo html::stats_detail_line('~Opponent ELO',
     [$opponent_elo, $opponent_elo_delta]);
 
 // Times played.
-$avg_time = convert_back_to_time(array_sum($gametimes) / count($gametimes) + 8);
-$avg_time_won = convert_back_to_time(array_sum($wintimes) / count($wintimes) + 8);
-$avg_time_lost = convert_back_to_time(array_sum($losstimes) / count($losstimes) + 8);
-$min_time = convert_back_to_time(min($gametimes) + 8);
-$max_time = convert_back_to_time(max($gametimes) + 8);
-$min_time_won = convert_back_to_time(min($wintimes) + 8);
-$max_time_won = convert_back_to_time(max($wintimes) + 8);
-$min_time_lost = convert_back_to_time(min($losstimes) + 8);
-$max_time_lost = convert_back_to_time(max($losstimes) + 8);
-// echo html::stats_detail_line('Times played', ["$min_time - $max_time", "~$avg_time"]);
-// echo html::stats_detail_line('Times won', ["$min_time_won - $max_time_won", "~$avg_time_won"]);
-// echo html::stats_detail_line('Times lost', ["$min_time_lost - $max_time_lost", "~$avg_time_lost"]);
+$avg_time = decimal_to_time(array_sum($gametimes) / count($gametimes) + 8);
+$min_time = decimal_to_time(min($gametimes) + 8);
+$max_time = decimal_to_time(max($gametimes) + 8);
+echo html::stats_detail_line('Times played', ["$min_time - $max_time", "~$avg_time"]);
+if ($wintimes && $losstimes) {
+    $avg_time_won = decimal_to_time(array_sum($wintimes) / count($wintimes) + 8);
+    $min_time_won = decimal_to_time(min($wintimes) + 8);
+    $max_time_won = decimal_to_time(max($wintimes) + 8);
+    echo html::stats_detail_line('Times won', ["$min_time_won - $max_time_won", "~$avg_time_won"]);
+    $avg_time_lost = decimal_to_time(array_sum($losstimes) / count($losstimes) + 8);
+    $min_time_lost = decimal_to_time(min($losstimes) + 8);
+    $max_time_lost = decimal_to_time(max($losstimes) + 8);
+    echo html::stats_detail_line('Times lost', ["$min_time_lost - $max_time_lost", "~$avg_time_lost"]);
+}
+
+// Partners.
+$partnercount = count($partnerlist);
+echo html::stats_detail_line('Partners', ["$partnercount/$totalplayers",
+    round(count($games)/$partnercount, 1) . " gms/p"]);
+
+// Opponents.
+$opponentcount = count($opponentlist);
+echo html::stats_detail_line('Opponents', ["$opponentcount/$totalplayers",
+    round(count($games)/$opponentcount, 1) . " gms/o"]);
+
+
+
 
 // Main partner.
 if (isset($main_partner_id)) {

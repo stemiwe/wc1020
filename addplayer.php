@@ -60,6 +60,7 @@ if (count($_POST) > 0) {
             'bg' => $bg,
             'color' => $color,
             'elo' => 1000, // Default ELO.
+            's_elo' => 1000, // Default ELO.
             'joined' => time(),
         ];
         $DB->insert("players", $player);

@@ -11,23 +11,32 @@ if (isset($filter['sql'])) {
 }
 
 // Define table columns.
+$orderby = 6;
 $table['cols'] = ['Name'];
 if ($filter['col'] != 'date') {
     $table['cols'][] = 'S';
+    $orderby += 1;
 }
 $table['cols'][] = 'G';
 $table['cols'][] = 'W';
 $table['cols'][] = 'L';
+$table['cols'][] = 'W%';
+$table['cols'][] = 'G+/-';
+
+// Session.
 if ($filter['col'] == 'date') {
-    $table['cols'][] = 'G+';
-    $table['cols'][] = 'G-';
-    $orderby = 6;
+    $table['cols'][] = 'ELO';
+
+// Season.
+} elseif ($filter['col'] == 'season') {
+    $table['cols'][] = 'ELO';
+    $table['cols'][] = 'sELO';
+    $orderby += 1;
+
+// Alltime.
 } else {
-    $table['cols'][] = 'W%';
-    $table['cols'][] = 'G+/-';
-    $orderby = 7;
+    $table['cols'][] = 'ELO';
 }
-$table['cols'][] = 'ELO';
 
 // Table rows.
 $table['rows'] = [];
@@ -41,15 +50,24 @@ if ($filter['filter'] == 'regulars') {
 
 foreach ($players as $player) {
 
+    // Get teams and games.
     $player_id = $player['id'];
     $team_ids = get_team_ids($player_id);
     $wins = get_wins($team_ids);
     $losses = get_losses($team_ids);
-    $sessions = get_player_sessions($player_id, false);
 
+    // Get season sessions.
+    if ($filter['col'] == 'season') {
+        $sessions = get_player_sessions($player_id, false, $filter['default']);
+    } else {
+        $sessions = get_player_sessions($player_id, false);
+    }
+
+    // Calculate ELO and goals.
     $gp = 0;
     $gm = 0;
     $elo_diff = 0;
+    $s_elo_diff = 0;
     foreach ($wins as $key => $win) {
 
         // Filter - ToDo: move to SQL query.
@@ -65,6 +83,7 @@ foreach ($players as $player) {
         $gp += $win['wg'];
         $gm += $win['lg'];
         $elo_diff += $win['elo_diff'];
+        $s_elo_diff += $win['s_elo_diff'];
     }
 
     foreach ($losses as $key => $loss) {
@@ -82,17 +101,12 @@ foreach ($players as $player) {
         $gm += $loss['wg'];
         $gp += $loss['lg'];
         $elo_diff -= $loss['elo_diff'];
+        $s_elo_diff -= $loss['s_elo_diff'];
     }
 
     $win = count($wins);
     $loss = count($losses);
     $games = $win + $loss;
-    $elo = $player['elo'];
-    $elo_class = 'elo-loss';
-    if ($elo_diff > 0) {
-        $elo_diff = "+$elo_diff";
-        $elo_class = 'elo-gain';
-    }
 
     // Skip players that didnt compete this session/season.
     if ($games == 0 || (isset($cutoff) && $games < $cutoff)) {
@@ -108,19 +122,23 @@ foreach ($players as $player) {
     $row[] = ['class' => 'number-cell', 'value' => $games];
     $row[] = ['class' => 'number-cell', 'value' => $win];
     $row[] = ['class' => 'number-cell', 'value' => $loss];
+    $win_percentage = $games > 0 ? number_format(($win / $games) * 100, 1) . '%' : '0%';
+    $row[] = ['class' => 'number-cell ', 'value' => $win_percentage];
+    $avg_goals = number_format(($gp - $gm) / $games, 2);
+    $row[] = ['class' => 'number-cell' , 'value' => $avg_goals];
+
+    // Session.
     if ($filter['col'] == 'date') {
-        $row[] = ['class' => 'gp-cell', 'value' => $gp];
-        $row[] = ['class' => 'gm-cell', 'value' => $gm];
+        $row[] = ['class' => 'elo-cell ', 'value' => format_elo($elo_diff, '', '')];
+
+    // Season.
+    } elseif ($filter['col'] == 'season') {
+        $row[] = ['class' => 'elo-cell', 'value' => format_elo($elo_diff, '', '')];
+        $row[] = ['class' => 'number-cell', 'value' => ELO::current($player_id, $filter['default'])];
+
+    // Alltime.
     } else {
-        $win_percentage = $games > 0 ? number_format(($win / $games) * 100, 1) . '%' : '0%';
-        $row[] = ['class' => 'number-cell ', 'value' => $win_percentage];
-        $avg_goals = number_format(($gp - $gm) / $games, 2);
-        $row[] = ['class' => 'number-cell' , 'value' => $avg_goals];
-    }
-    if ($usefilter) {
-        $row[] = ['class' => 'elo-cell ' . $elo_class, 'value' => $elo_diff];
-    } else {
-        $row[] = ['class' => 'number-cell', 'value' => $elo];
+        $row[] = ['class' => 'number-cell', 'value' => $player['elo']];
     }
     $table['rows'][] = $row;
 }

@@ -6,9 +6,16 @@ session_start();
 $CFG = new stdClass();
 $CFG->nocache = true;
 $CFG->season = 2;
-$CFG->testsite = false;
 $CFG->autologinip = '213.147.166.79';
 date_default_timezone_set('Europe/Vienna'); // Or 'Europe/Berlin', both use CET/CEST
+
+// Determine if this is a test site.
+$CFG->docroot = dirname(__FILE__);
+if (str_contains($CFG->docroot,'test')) {
+    $CFG->testsite = true;
+} else {
+    $CFG->testsite = false;
+}
 
 // Reporting.
 ini_set('display_errors', 1);
@@ -40,6 +47,10 @@ $DB = new Medoo\Medoo([
     'username' => 'wc1010',
     'password' => 'wUZLkELLAH420?',
     'charset' => 'utf8mb4',
+    'option' => [
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]
+
 ]);
 
 // Datatables js config.

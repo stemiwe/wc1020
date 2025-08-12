@@ -24,7 +24,13 @@ if ($filter['col'] == 'date') {
     $table['cols'][] = 'W%';
     $table['cols'][] = 'G+/-';
 }
-$table['cols'][] = 'ELO';
+if ($filter['col'] == 'season') {
+    $table['cols'][] = 'sELO';
+    $elokey = 's_elo_diff';
+} else {
+    $table['cols'][] = 'ELO';
+    $elokey = 'elo_diff';
+}
 
 // Regulars only?
 if ($filter['filter'] == 'regulars') {
@@ -64,7 +70,7 @@ foreach ($teams as $team) {
 
         $gp += $win['wg'];
         $gm += $win['lg'];
-        $elo = $elo + $win['elo_diff'];
+        $elo = $elo + $win[$elokey];
     }
     foreach ($losses as $key => $loss) {
 
@@ -80,7 +86,7 @@ foreach ($teams as $team) {
 
         $gm += $loss['wg'];
         $gp += $loss['lg'];
-        $elo = $elo - $loss['elo_diff'];
+        $elo = $elo - $loss[$elokey];
     }
 
     $win = count($wins);
@@ -97,7 +103,7 @@ foreach ($teams as $team) {
         continue;
     }
 
-    // Add to table.
+    // Add to table.nein
     $row = [];
     $row[] = ['class' => 'player-cell', 'value' => write_player($p1) . write_player($p2)];
     $row[] = ['class' => 'number-cell', 'value' => $games];
@@ -109,7 +115,7 @@ foreach ($teams as $team) {
     } else {
         $win_percentage = $games > 0 ? number_format(($win / $games) * 100, 1) . '%' : '0%';
         $row[] = ['class' => 'number-cell ', 'value' => $win_percentage];
-        $avg_goals = number_format(($gp - $gm) / $games, 2);        
+        $avg_goals = number_format(($gp - $gm) / $games, 2);
         $row[] = ['class' => 'number-cell', 'value' => $avg_goals];
     }
     $row[] = ['class' => 'elo-cell ' . $elo_class, 'value' => $elo];

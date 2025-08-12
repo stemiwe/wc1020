@@ -23,6 +23,7 @@ $game['p4'] = $player4['id'];
 $game['wg'] = $_SESSION['game']['wg'] ?? null;
 $game['lg'] = $_SESSION['game']['lg'] ?? null;
 $game['elo_diff'] = $_SESSION['game']['elo_diff'] ?? null;
+$game['s_elo_diff'] = $_SESSION['game']['s_elo_diff'] ?? null;
 
 // Update DB on confirm.
 if (array_key_exists('confirm', $_POST)) {

@@ -133,14 +133,29 @@ function convert_to_real_time(float $metric_time): string {
 }
 
 /**
- * Gets the average time from an array of times.
+ * Converts a timestamp to metric time (CET).
+ *
+ * @param int $timestamp
+ * @return float
+ */
+function time_to_decimal(int $timestamp): float {
+
+    $timestamp = $timestamp - 8 * 3600; // Reduce by 8 hours to not jump over midnight.
+    $hour = date('H', $timestamp);
+    $minutes = date('i', $timestamp);
+    $minutes = $minutes / 60;
+    return $hour + $minutes;
+}
+
+/**
+ * Converts back to real time.
  *
  * @param array $time
  *
  * @return string
  */
 
-function convert_back_to_time($time): string {
+function decimal_to_time($time): string {
 
     // Step 3: Normalize value to 0–24 (wrap around if needed)
     $time = fmod($time, 24);

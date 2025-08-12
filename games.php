@@ -15,9 +15,17 @@ $table['cols'] = ['Date',
                   'Winner',
                   'G+',
                   'G-',
-                  'Loser',
-                  'ELO'];
+                  'Loser'
+];
 
+// sELO or ELO?
+if ($filter['col'] == 'season') {
+    $table['cols'][] = 'sELO';
+    $s_elo = true;
+} else {
+    $table['cols'][] = 'ELO';
+    $s_elo = false;
+}
 
 // Build SQL.
 $sql = "SELECT * FROM games ";
@@ -30,7 +38,7 @@ $games = $DB->query($sql)->fetchAll();
 // Table rows.
 $table['rows'] = [];
 foreach ($games as $game) {
-    $row = html::game_row($game);
+    $row = html::game_row($game, $s_elo);
     $table['rows'][] = $row;
 }
 
