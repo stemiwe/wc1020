@@ -52,6 +52,10 @@ class html {
         <script src="{$CFG->wwwroot}/js/ext/jquery-3.6.0.min.js"></script>
         <script src="{$CFG->wwwroot}/js/ext/jquery.dataTables.min.js"></script>
 
+HTML
+. ($CFG->testsite ? "\n    <link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/styles/testsite.css?v={$nocache}\">" : '') .
+<<<HTML
+
     </head>
     <body>
         <div class="content">

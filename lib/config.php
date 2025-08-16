@@ -75,10 +75,5 @@ $datatables_config = [
 $current_url = current_url();
 if (!strpos($current_url,'/api')) {
     echo html::header();
-
-    // Test site specific config.
-    if ($CFG->testsite) {
-        echo "<style>body { background-color: hotpink !important; }</style>";
-    }
 }
 

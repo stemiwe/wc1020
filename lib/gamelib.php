@@ -225,10 +225,22 @@ function add_game($game) {
     global $CFG, $DB;
 
     $DB->pdo->beginTransaction();
-    $p1_id = $game['p1'];
-    $p2_id = $game['p2'];
-    $p3_id = $game['p3'];
-    $p4_id = $game['p4'];
+
+    // Get player IDs.
+    if ($game['p1'] > $game['p2']) {
+        $p1_id = $game['p2'];
+        $p2_id = $game['p1'];
+    } else {
+        $p1_id = $game['p1'];
+        $p2_id = $game['p2'];
+    }
+    if ($game['p3'] > $game['p4']) {
+        $p3_id = $game['p4'];
+        $p4_id = $game['p3'];
+    } else {
+        $p3_id = $game['p3'];
+        $p4_id = $game['p4'];
+    }
 
     // Get team IDs.
     $t1p1_id = $p1_id < $p2_id ? $p1_id : $p2_id;
@@ -244,10 +256,10 @@ function add_game($game) {
     $date = time() - 8 * 3600;
 
     // Get players.
-    $player1 = $DB->get("players", "*", ["id" => $game['p1']]);
-    $player2 = $DB->get("players", "*", ["id" => $game['p2']]);
-    $player3 = $DB->get("players", "*", ["id" => $game['p3']]);
-    $player4 = $DB->get("players", "*", ["id" => $game['p4']]);
+    $player1 = $DB->get("players", "*", ["id" => $p1_id]);
+    $player2 = $DB->get("players", "*", ["id" => $p2_id]);
+    $player3 = $DB->get("players", "*", ["id" => $p3_id]);
+    $player4 = $DB->get("players", "*", ["id" => $p4_id]);
 
     // Create game record.
     $session = date('Y-m-d', $date);
@@ -271,7 +283,7 @@ function add_game($game) {
     ];
 
     // Calculate ELO if not provided.
-    if (!isset($game['elo_diff'])) {
+    if (!isset($game['elo_diff']) || !isset($game['s_elo_diff'])) {
         $record['elo_diff'] = ELO::diff($record);
         $record['s_elo_diff'] = ELO::diff($record, 's_elo');
     } else {
@@ -283,14 +295,14 @@ function add_game($game) {
     $DB->insert("games", $record);
 
     // Update ELO for players.
-    $elo1 = $player1['elo'] + $game['elo_diff'];
-    $elo2 = $player2['elo'] + $game['elo_diff'];
-    $elo3 = $player3['elo'] - $game['elo_diff'];
-    $elo4 = $player4['elo'] - $game['elo_diff'];
-    $s_elo1 = $player1['s_elo'] + $game['s_elo_diff'];
-    $s_elo2 = $player2['s_elo'] + $game['s_elo_diff'];
-    $s_elo3 = $player3['s_elo'] - $game['s_elo_diff'];
-    $s_elo4 = $player4['s_elo'] - $game['s_elo_diff'];
+    $elo1 = $player1['elo'] + $record['elo_diff'];
+    $elo2 = $player2['elo'] + $record['elo_diff'];
+    $elo3 = $player3['elo'] - $record['elo_diff'];
+    $elo4 = $player4['elo'] - $record['elo_diff'];
+    $s_elo1 = $player1['s_elo'] + $record['s_elo_diff'];
+    $s_elo2 = $player2['s_elo'] + $record['s_elo_diff'];
+    $s_elo3 = $player3['s_elo'] - $record['s_elo_diff'];
+    $s_elo4 = $player4['s_elo'] - $record['s_elo_diff'];
     for ($i = 1; $i <= 4; $i++) {
         $elokey = "elo$i";
         $s_elokey = "s_elo$i";
@@ -311,7 +323,7 @@ function add_game($game) {
 
     // Return result.
     if ($result) {
-        return 'game added. ELO: ' . $game['elo_diff'];
+        return 'game added. ELO: ' . $record['elo_diff'];
     } else {
         return 'something went wrong';
     }

@@ -5,11 +5,6 @@ require_login();
 
 global $DB;
 
-$playerid = 32;
-$elo = ELO::current($playerid, 1);
-var_dump($elo);
-die();
-
 $games = $DB->select('games', '*', [
     'ORDER' => ['timestamp' => 'ASC']
 ]);
