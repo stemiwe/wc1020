@@ -46,5 +46,6 @@ $result = $DB->insert("players", $player);
 // Send back a JSON response
 http_response_code(200); // OK
 echo json_encode([
-    'Added player ' . $DB->id(),
+    'id' => $DB->id(),
+    'status' => "Added player " . $DB->id(),
 ]);

@@ -271,10 +271,11 @@ HTML
      *
      * @param array $game
      * @param bool $s_elo Whether to include sELO in the row.
+     * @param bool $edit Whether the row should be editable.
      *
      * @return array $row
      */
-    public static function game_row($game, $s_elo = false) {
+    public static function game_row($game, $s_elo = false, $edit = false) {
 
         global $DB;
 
@@ -314,6 +315,9 @@ HTML
             $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$s_elofontsize}rem; color: {$s_elocolor};'>{$s_elo_diff}</span>"];
         } else {
             $row[] = ['class' => 'elo-cell', 'value' => "<span style='font-size: {$elofontsize}rem; color: {$elocolor};'>{$elo_diff}</span>"];
+        }
+        if ($edit) {
+            $row[] = ['class' => 'edit-cell', 'value' => "<a class='edit-button' href='./editgame.php?id={$game['id']}'>edit</a>"];
         }
 
         return $row;

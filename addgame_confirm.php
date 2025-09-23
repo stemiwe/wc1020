@@ -24,6 +24,11 @@ $game['wg'] = $_SESSION['game']['wg'] ?? null;
 $game['lg'] = $_SESSION['game']['lg'] ?? null;
 $game['elo_diff'] = $_SESSION['game']['elo_diff'] ?? null;
 $game['s_elo_diff'] = $_SESSION['game']['s_elo_diff'] ?? null;
+if (isset($_SESSION['game']['timestamp'])) {
+    $game['timestamp'] = strtotime($_SESSION['game']['timestamp']);
+} else {
+    $game['timestamp'] = time();
+}
 
 // Update DB on confirm.
 if (array_key_exists('confirm', $_POST)) {

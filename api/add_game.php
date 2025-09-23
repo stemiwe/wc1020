@@ -57,6 +57,7 @@ for ( $i = 1; $i < 5; $i++ ) {
 // Add game.
 $game['wg'] = $_POST['gw']; // sigh.
 $game['lg'] = $_POST['gl']; // ikr?
+$game['duration'] = $_POST['duration'] ?? null;
 $error = validate_game($game);
 
 if ($error == 0) {

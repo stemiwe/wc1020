@@ -326,6 +326,11 @@ h2, .form h2 {
 table {
     width: 100%;
 }
+@media (max-width: 800px) {
+    #table {
+        margin-bottom: 10rem;
+    }
+}
 th {
     color: black;
     background-color: white;
